@@ -55,6 +55,16 @@
    git checkout -b your-branch-name
    ```
 
+   ### Branch Naming Conventions
+
+   - Use prefixes like `feature/`, `fix/`, `enhancement/`, or `chore/`.
+   - Keep the branch name descriptive.
+   - Example branch names:
+     - `feature/new-homepage`
+     - `fix/login-bug`
+     - `enhancement/cart-ui`
+     - `chore/update-dependencies`
+
 5. Create .env file, run this command in the terminal:
 
    ```bash
