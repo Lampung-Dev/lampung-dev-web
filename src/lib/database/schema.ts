@@ -6,6 +6,7 @@ export const userTable = pgTable("user", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   picture: text("picture").notNull(),
+  title: text('title'),
   passwordHash: text("password_hash"),
   role: text("role", { enum: ['ADMIN', 'MODERATOR', 'USER'] })
     .default("USER")
@@ -45,7 +46,7 @@ export const socialMediaTable = pgTable("social_media", {
   userId: uuid("user_id")
     .notNull()
     .references(() => userTable.id),
-  name: text("name").notNull(),
+  platform: text("platform").notNull(),
   link: text("link").notNull(),
 }, (table) => [
   index("social_media_user_id_idx").on(table.userId)

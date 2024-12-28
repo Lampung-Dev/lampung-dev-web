@@ -1,26 +1,12 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Trash2 } from "lucide-react";
-
-interface SocialMediaLink {
-    platform: string;
-    url: string;
-}
-
-type SocialPlatform =
-    | "twitter"
-    | "linkedin"
-    | "github"
-    | "instagram"
-    | "facebook"
-    | "youtube"
-    | "tiktok"
-    | "personal website";
+import { SocialMediaLink, SocialPlatform } from '@/types/user';
 
 const SOCIAL_PLATFORMS: Record<SocialPlatform, string> = {
     twitter: "Twitter",
@@ -33,11 +19,14 @@ const SOCIAL_PLATFORMS: Record<SocialPlatform, string> = {
     "personal website": "Personal Website"
 } as const;
 
-export default function SelectPlatform() {
-    const [socialMediaLinks, setSocialMediaLinks] = useState<SocialMediaLink[]>([
-        { platform: '', url: '' }
-    ]);
+type SelectPlatformProps = {
+    socialMediaLinks: SocialMediaLink[];
+    setSocialMediaLinks: Dispatch<SetStateAction<SocialMediaLink[]>>
+}
 
+export default function SelectPlatform({
+    socialMediaLinks, setSocialMediaLinks
+}: SelectPlatformProps) {
     const addSocialMedia = (): void => {
         setSocialMediaLinks([...socialMediaLinks, { platform: '', url: '' }]);
     };
@@ -58,7 +47,7 @@ export default function SelectPlatform() {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
                 <p className="text-xl text-primary">Social Media</p>
                 {socialMediaLinks.length < 8 &&
