@@ -8,7 +8,7 @@ import { updatePictureService } from '@/services/user';
 export async function uploadImageAction(
     formData: FormData
 ) {
-    const session = auth();
+    const session = await auth();
     if (!session) {
         throw new Error('Please log in to perform this action.');
     }

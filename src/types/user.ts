@@ -14,10 +14,12 @@ export type UserProfile = {
     name: string;
     email: string;
     avatar: string;
+    title: string;
+    socialMediaLinks: SocialMediaLink[]
 }
 
 export type SocialPlatform =
-    | "twitter"
+    | "x"
     | "linkedin"
     | "github"
     | "instagram"

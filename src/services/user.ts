@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import db from "@/lib/database";
 import { TNewUser } from "@/types/user";
 import { userTable } from "@/lib/database/schema";
+import { getSocialMediaService } from './social-media';
 
 export const createUserService = async (values: TNewUser) => {
     try {
@@ -26,20 +27,27 @@ export const createUserService = async (values: TNewUser) => {
 
 export const getUserByEmailService = async (email: string) => {
     try {
-        const result = await db.query.userTable.findFirst({
+        const user = await db.query.userTable.findFirst({
             where: (table) => eq(table.email, email),
         });
 
+        if (!user) {
+            return null
+        }
+
+        const socialMediaLinks = await getSocialMediaService(user.id)
+
         const sanitizedResult = {
-            id: result?.id,
-            name: result?.name,
-            email: result?.email,
-            picture: result?.picture,
-            role: result?.role,
-            title: result?.title,
-            status: result?.status,
-            createdAt: result?.createdAt,
-            updatedAt: result?.updatedAt
+            id: user?.id,
+            name: user?.name,
+            email: user?.email,
+            picture: user?.picture,
+            role: user?.role,
+            title: user?.title,
+            status: user?.status,
+            createdAt: user?.createdAt,
+            updatedAt: user?.updatedAt,
+            socialMediaLinks: socialMediaLinks.map((l) => ({ platform: l.platform, url: l.link }))
         }
 
         return sanitizedResult

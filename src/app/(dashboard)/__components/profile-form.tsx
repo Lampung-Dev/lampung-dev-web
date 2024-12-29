@@ -5,67 +5,92 @@ import { Label } from "@/components/ui/label";
 import SelectPlatform from "./select-platform";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { SocialMediaLink } from "@/types/user";
+import { SocialMediaLink, UserProfile } from "@/types/user";
+import { toast } from "sonner";
+import { updateUserAction } from "@/actions/update-user-action";
 
-type User = {
-    name: string;
-    email: string;
-    avatar: string;
-}
-
-export default function ProfileForm({ user }: { user: User }) {
+export default function ProfileForm({ user }: { user: UserProfile }) {
     const [name, setName] = useState(user.name)
     const [email, setEmail] = useState(user.email)
-    const [title, setTitle] = useState('')
-    const [socialMediaLinks, setSocialMediaLinks] = useState<SocialMediaLink[]>([
-        { platform: '', url: '' }
-    ]);
-
+    const [title, setTitle] = useState(user.title)
+    const [socialMediaLinks, setSocialMediaLinks] = useState<SocialMediaLink[]>([])
+    const [isLoading, setIsLoading] = useState(false)
+    const [errors, setErrors] = useState<{
+        name?: boolean;
+        title?: boolean;
+        socialMedia?: boolean;
+    }>({})
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
+        setErrors(prev => ({ ...prev, name: !e.target.value.trim() }));
     };
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value);
+        setErrors(prev => ({ ...prev, title: !e.target.value.trim() }));
+    };
+
+    const validateForm = () => {
+        const newErrors = {
+            name: !name.trim(),
+            title: !title.trim(),
+            socialMedia: socialMediaLinks.length > 0 && socialMediaLinks.some(link => !link.platform || !link.url.trim())
+        };
+
+        setErrors(newErrors);
+        return !Object.values(newErrors).some(Boolean);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Add your form submission logic here
-        console.log({ name, email, title, socialMediaLinks });
 
-        // try {
-        //     const update = await updateUserAction({ name, email, title, socialMediaLinks })
+        if (!validateForm()) {
+            toast.error('Please fill in all required fields.');
+            return;
+        }
 
-        //     console.log(update)
-
-        // } catch (error) {
-        //     console.log('Error update profile:', error)
-        //     toast('Error Update Profil')
-        // }
-
+        try {
+            setIsLoading(true);
+            await updateUserAction({ name, title, email, socialMediaLinks });
+            toast.success('Success update profile data.');
+        } catch (error) {
+            console.log('Error update profile:', error);
+            toast.error('Failed to update profile data.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    // Update state when user prop changes
     useEffect(() => {
         setName(user.name);
         setEmail(user.email);
+        setTitle(user.title || '');
+        setSocialMediaLinks(user.socialMediaLinks || []);
     }, [user]);
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid w-full max-w-sm items-center gap-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="flex items-center gap-1">
+                    Name
+                    <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     type="text"
                     id="name"
                     placeholder="Name"
                     value={name}
                     onChange={handleNameChange}
+                    className={errors.name ? 'border-red-500' : ''}
+                    required
                 />
+                {errors.name && (
+                    <p className="text-sm text-red-500">Name is required</p>
+                )}
             </div>
-            <div className="grid w-full max-w-sm items-center gap-2 mt-4">
+
+            <div className="grid w-full max-w-sm items-center gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                     type="email"
@@ -76,21 +101,43 @@ export default function ProfileForm({ user }: { user: User }) {
                     readOnly
                 />
             </div>
-            <div className="grid w-full max-w-sm items-center gap-2 mt-4">
-                <Label htmlFor="title">Title</Label>
+
+            <div className="grid w-full max-w-sm items-center gap-2">
+                <Label htmlFor="title" className="flex items-center gap-1">
+                    Title
+                    <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     type="text"
                     id="title"
                     placeholder="Title"
                     value={title}
                     onChange={handleTitleChange}
+                    className={errors.title ? 'border-red-500' : ''}
+                    required
                 />
+                {errors.title && (
+                    <p className="text-sm text-red-500">Title is required</p>
+                )}
             </div>
 
-            <SelectPlatform setSocialMediaLinks={setSocialMediaLinks} socialMediaLinks={socialMediaLinks} />
+            <SelectPlatform
+                setSocialMediaLinks={setSocialMediaLinks}
+                socialMediaLinks={socialMediaLinks}
+                hasError={errors.socialMedia}
+                onValidationChange={(isValid) =>
+                    setErrors(prev => ({ ...prev, socialMedia: !isValid }))
+                }
+            />
 
-            <div className="flex justify-end mt-8">
-                <Button type="submit" className="w-36">Save</Button>
+            <div className="flex justify-end pt-4">
+                <Button
+                    type="submit"
+                    className="w-36"
+                    disabled={isLoading}
+                >
+                    {isLoading ? "Processing..." : "Save"}
+                </Button>
             </div>
         </form>
     )

@@ -14,7 +14,9 @@ export default async function Page() {
     const user: UserProfile = {
         avatar: session.user?.image as string,
         email: session.user?.email as string,
-        name: session.user?.name as string
+        name: session.user?.name as string,
+        title: '',
+        socialMediaLinks: []
     }
 
     try {
@@ -23,6 +25,8 @@ export default async function Page() {
         if (userData) {
             user.avatar = userData?.picture as string
             user.name = userData.name as string
+            user.title = userData?.title as string
+            user.socialMediaLinks = userData?.socialMediaLinks
         }
     } catch (error) {
         console.log('ERROR get user data in my profile page:', error)
