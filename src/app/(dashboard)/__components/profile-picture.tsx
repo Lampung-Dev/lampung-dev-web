@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { uploadImageAction } from '@/actions/upload-image-action';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { errorHandler } from '@/lib/utils';
 
 type Props = {
     user: UserProfile;
@@ -116,7 +117,7 @@ export default function ProfilePicture({ user }: Props) {
                 .catch((error) => {
                     console.error('Upload error:', error);
                     setPhoto(oldPhoto);
-                    toast.error('Failed to update profile photo.');
+                    errorHandler({ error: error as Error, secondErrorMessage: 'Failed to update profile photo.' })
                     setIsLoading(false);
                 });
         } catch (error) {

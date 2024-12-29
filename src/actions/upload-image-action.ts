@@ -1,11 +1,13 @@
 'use server';
 
+import type { UploadApiResponse } from 'cloudinary';
+
 import { auth } from '@/lib/next-auth';
 import cloudinary from '@/lib/cloudinary';
-import type { UploadApiResponse } from 'cloudinary';
+import { createRateLimitedAction } from '@/lib/rate-limiter';
 import { updatePictureService } from '@/services/user';
 
-export async function uploadImageAction(
+export async function uploadImageBase(
     formData: FormData
 ) {
     const session = await auth();
@@ -60,3 +62,8 @@ export async function uploadImageAction(
         throw new Error('Error during image upload or update')
     }
 }
+
+export const uploadImageAction = createRateLimitedAction(uploadImageBase, {
+    limit: 1,
+    window: 30000 // 30 seconds
+});

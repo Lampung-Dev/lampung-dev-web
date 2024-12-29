@@ -1,12 +1,14 @@
 'use client'
 
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
+
+import { errorHandler } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SelectPlatform from "./select-platform";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import { SocialMediaLink, UserProfile } from "@/types/user";
-import { toast } from "sonner";
 import { updateUserAction } from "@/actions/update-user-action";
 
 export default function ProfileForm({ user }: { user: UserProfile }) {
@@ -52,11 +54,17 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
 
         try {
             setIsLoading(true);
-            await updateUserAction({ name, title, email, socialMediaLinks });
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('title', title);
+            formData.append('email', email);
+            formData.append('socialMediaLinks', JSON.stringify(socialMediaLinks));
+
+            await updateUserAction(formData);
             toast.success('Success update profile data.');
         } catch (error) {
-            console.log('Error update profile:', error);
-            toast.error('Failed to update profile data.');
+            errorHandler({ error: error as Error, secondErrorMessage: 'Failed to update profile data.' })
         } finally {
             setIsLoading(false);
         }
