@@ -10,3 +10,25 @@ export type TNewUser = Omit<TUser, 'id' | 'role' | 'status' | 'createdAt' | 'upd
     createdAt?: TUser['createdAt'];
     updatedAt?: TUser['updatedAt'];
 }
+export type UserProfile = {
+    name: string;
+    email: string;
+    avatar: string;
+    title: string;
+    socialMediaLinks: SocialMediaLink[]
+}
+
+export type SocialPlatform =
+    | "x"
+    | "linkedin"
+    | "github"
+    | "instagram"
+    | "facebook"
+    | "youtube"
+    | "tiktok"
+    | "personal website";
+
+export type SocialMediaLink = {
+    platform: string;
+    url: string;
+}

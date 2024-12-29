@@ -1,6 +1,6 @@
 'use client'
 
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -27,7 +27,7 @@ export default function BreadCrumbDashboard() {
             <BreadcrumbList>
                 {breadcrumbs.map(({ path, label }, index) => (
                     <BreadcrumbItem key={path}>
-                        {index !== 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                        {index !== 0 && <BreadcrumbPage>/</BreadcrumbPage>}
                         {index === breadcrumbs.length - 1 ? (
                             <BreadcrumbPage>{label}</BreadcrumbPage>
                         ) : (

@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/providers/theme-providers";
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,9 @@ export default async function RootLayout({
                     disableTransitionOnChange
                 >
                     {children}
+                    <Toaster
+                        position="top-right"
+                    />
                 </ThemeProvider>
             </body>
         </html>

@@ -1,5 +1,5 @@
-import { creatSession, getSessionByUserId, updateSession } from "@/services/auth";
-import { createUser, getUserByEmail } from "@/services/user";
+import { creatSessionService, getSessionByUserIdService, updateSessionService } from "@/services/auth";
+import { createUserService, getUserByEmailService } from "@/services/user";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
@@ -22,25 +22,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     callbacks: {
         async session(params) {
             try {
-                const existingUser = await getUserByEmail(params.session.user.email)
+                const existingUser = await getUserByEmailService(params.session.user.email)
 
                 if (!existingUser) {
                     // If user doesn't exist, create a new user
-                    const [newUser] = await createUser({
+                    const [newUser] = await createUserService({
                         name: params.session.user.name!,
                         email: params.session.user.email,
                         picture: params.session.user.image!,
-                        passwordHash: null
+                        passwordHash: null,
+                        title: null
                     })
 
-                    await creatSession({
+                    await creatSessionService({
                         userId: newUser.id,
                         expiresAt: new Date(params.session.expires),
                     })
                 } else {
-                    const existingSession = await getSessionByUserId(existingUser.id)
+                    const existingSession = await getSessionByUserIdService(existingUser.id as string)
 
-                    await updateSession({
+                    await updateSessionService({
                         expiresAt: new Date(params.session.expires),
                         sessionId: existingSession?.id as string
                     })
