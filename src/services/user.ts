@@ -1,52 +1,72 @@
-import db from "@/lib/database";
-import { userTable } from "@/lib/database/schema";
-import { TNewUser } from "@/types/user";
+import 'server-only'
 import { eq } from "drizzle-orm";
 
-export const createUserService = async (values: TNewUser) =>
-    await db
-        .insert(userTable)
-        .values({
-            name: values.name,
-            email: values.email,
-            picture: values.picture
-        })
-        .returning({
-            id: userTable.id,
-            email: userTable.email,
-        });
+import db from "@/lib/database";
+import { TNewUser } from "@/types/user";
+import { userTable } from "@/lib/database/schema";
+
+export const createUserService = async (values: TNewUser) => {
+    try {
+        return await db
+            .insert(userTable)
+            .values({
+                name: values.name,
+                email: values.email,
+                picture: values.picture
+            })
+            .returning({
+                id: userTable.id,
+                email: userTable.email,
+            });
+    } catch (error) {
+        console.log('ERROR create user service:', error)
+        throw new Error('Error creating the user.');
+    }
+}
 
 export const getUserByEmailService = async (email: string) => {
-    const result = await db.query.userTable.findFirst({
-        where: (table) => eq(table.email, email),
-    });
+    try {
+        const result = await db.query.userTable.findFirst({
+            where: (table) => eq(table.email, email),
+        });
 
-    const sanitizedResult = {
-        id: result?.id,
-        name: result?.name,
-        email: result?.email,
-        picture: result?.picture,
-        role: result?.role,
-        title: result?.title,
-        status: result?.status,
-        createdAt: result?.createdAt,
-        updatedAt: result?.updatedAt
+        const sanitizedResult = {
+            id: result?.id,
+            name: result?.name,
+            email: result?.email,
+            picture: result?.picture,
+            role: result?.role,
+            title: result?.title,
+            status: result?.status,
+            createdAt: result?.createdAt,
+            updatedAt: result?.updatedAt
+        }
+
+        return sanitizedResult
+    } catch (error) {
+        console.log('ERROR getUserByEmailService:', error)
+        throw new Error('Error retrieving the user.');
     }
-
-    return sanitizedResult
 }
 
 export const updatePictureService = async (data: { picture: string; email: string }) => {
-    const result = await db.update(userTable)
-        .set({ picture: data.picture })
-        .where(eq(userTable.email, data.email))
-
-    return result
+    try {
+        return await db.update(userTable)
+            .set({ picture: data.picture })
+            .where(eq(userTable.email, data.email))
+            .returning({
+                id: userTable.id,
+                email: userTable.email,
+            });
+    } catch (error) {
+        console.log('ERROR update picture service:', error)
+        throw new Error('Error updating the profile photo.');
+    }
 }
 
 export const updateProfileDataService = async (data: { name: string; title: string; email: string }) => {
     try {
-        await db.update(userTable)
+        return await db.update(userTable)
             .set({
                 name: data.name,
                 title: data.title
@@ -58,6 +78,6 @@ export const updateProfileDataService = async (data: { name: string; title: stri
             });
     } catch (error) {
         console.log('ERROR update profile data:', error)
-        throw new Error('Error update profile data')
+        throw new Error('Error updating profile information.');
     }
 }

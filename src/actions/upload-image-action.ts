@@ -10,23 +10,21 @@ export async function uploadImageAction(
 ) {
     const session = auth();
     if (!session) {
-        return { public_id: '', successUpdate: false };
+        throw new Error('Please log in to perform this action.');
     }
 
     const file = formData.get('image') as File | null;
     const email = formData.get('email') as string | null;
 
     if (!file || !email) {
-        console.error('Invalid form data: Missing image or email.');
-        return { public_id: '', successUpdate: false };
+        throw new Error('Invalid form data: Missing image or email.');
     }
 
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const cloudinaryTag = process.env.CLOUDINARY_TAG;
 
     if (!cloudName || !cloudinaryTag) {
-        console.error('Missing required Cloudinary environment variables.');
-        return { public_id: '', successUpdate: false };
+        throw new Error('Missing required Cloudinary environment variables.');
     }
 
     try {
@@ -59,6 +57,6 @@ export async function uploadImageAction(
         return { public_id, successUpdate: Boolean(update) };
     } catch (error) {
         console.error('Error during image upload or update:', error);
-        return { public_id: '', successUpdate: false };
+        throw new Error('Error during image upload or update')
     }
 }

@@ -1,16 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { uploadImageAction } from '@/actions/upload-image-action';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useState, useCallback, useEffect, useTransition } from 'react';
 import { toast } from 'sonner';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
+import { useState, useCallback } from 'react';
+
 import { UserProfile } from '@/types/user';
+import 'react-image-crop/dist/ReactCrop.css';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { uploadImageAction } from '@/actions/upload-image-action';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type Props = {
     user: UserProfile;
@@ -29,13 +30,6 @@ export default function ProfilePicture({ user }: Props) {
     });
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [, startTransition] = useTransition();
-
-    useEffect(() => {
-        if (!isLoading) {
-            toast.success('Berhasil ganti foto profil');
-        }
-    }, [isLoading]);
 
     const onImageLoad = useCallback((img: HTMLImageElement) => {
         const cropSize = Math.min(350, Math.min(img.width, img.height));
@@ -88,7 +82,7 @@ export default function ProfilePicture({ user }: Props) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) {
-            toast.error('Gambar tidak valid');
+            toast.error('Invalid image. Please use a valid one.');
             return;
         }
 
@@ -114,23 +108,23 @@ export default function ProfilePicture({ user }: Props) {
             setIsOpen(false);
             setIsLoading(true);
 
-            startTransition(() => {
-                uploadImageAction(formData)
-                    .then(() => {
-                        setIsLoading(false);
-                    })
-                    .catch((error) => {
-                        console.error('Upload error:', error);
-                        setPhoto(oldPhoto);
-                        toast.error('Gagal mengganti foto profil');
-                        setIsLoading(false);
-                    });
-            });
+            uploadImageAction(formData)
+                .then(() => {
+                    setIsLoading(false);
+                    toast.success('Profile photo updated successfully.');
+                })
+                .catch((error) => {
+                    console.error('Upload error:', error);
+                    setPhoto(oldPhoto);
+                    toast.error('Failed to update profile photo.');
+                    setIsLoading(false);
+                });
         } catch (error) {
             console.error('Cropping error:', error);
-            toast.error('Error memotong gambar');
+            toast.error('Error cropping the image.');
         }
-    }, [imageRef, crop, getCroppedImg, user.email, photo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [imageRef, crop, getCroppedImg, photo]);
 
     return (
         <>
