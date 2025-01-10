@@ -187,7 +187,7 @@ export default function ProfilePicture({ user }: Props) {
                             <Button
                                 onClick={handleCropComplete}
                                 disabled={isLoading}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-black"
+                                className="bg-primary hover:bg-yellow-600 text-black"
                             >
                                 {isLoading ? 'Uploading...' : 'Set new profile picture'}
                             </Button>

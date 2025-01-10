@@ -6,7 +6,7 @@ import MobileNavigation from "./mobile-navigation";
 
 const menuItems = [
     { title: 'About', href: '/about' },
-    { title: 'Events', href: '/events' },
+    { title: 'Events', href: '/our-events' },
     { title: 'Members', href: '/members' },
 ];
 
