@@ -3,6 +3,7 @@
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -17,7 +18,7 @@ export default function MobileNavigation({ menuItems }: { menuItems: { title: st
 
     return (
         <div className="md:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <Sheet open={isOpen} onOpenChange={setIsOpen} >
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white">
                         <Menu />
@@ -27,6 +28,9 @@ export default function MobileNavigation({ menuItems }: { menuItems: { title: st
                 <SheetContent side="right" className="w-64 bg-black/95 backdrop-blur-lg border-gray-800">
                     <SheetHeader>
                         <SheetTitle className="text-left">Navigation Menu</SheetTitle>
+                        <SheetDescription className="text-left sr-only">
+                            Navigate through the website using the links below.
+                        </SheetDescription>
                     </SheetHeader>
                     <div className="flex flex-col gap-4 mt-8">
                         <Link href="/login">

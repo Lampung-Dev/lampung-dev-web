@@ -98,14 +98,14 @@ export default function SelectPlatform({
 
     return (
         <div className="space-y-4 mt-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-center justify-between">
                 <p className="text-xl text-primary">Social Media</p>
                 {socialMediaLinks.length < 8 &&
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={addSocialMedia}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 mt-4 md:mt-0"
                     >
                         <PlusCircle className="h-4 w-4" />
                         Add Platform
@@ -115,8 +115,8 @@ export default function SelectPlatform({
 
             {socialMediaLinks.map((link, index) => (
                 <div key={index} className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <div className="grid w-full max-w-[200px] gap-1.5">
+                    <div className="flex flex-col md:flex-row items-center gap-4">
+                        <div className="grid w-full md:max-w-[200px] gap-1.5">
                             <div className="min-h-[76px]">
                                 <Label className="flex items-center gap-1">
                                     Platform {index + 1}
@@ -170,6 +170,7 @@ export default function SelectPlatform({
                             variant="ghost"
                             size="icon"
                             onClick={() => removeSocialMedia(index)}
+                            className="md:mt-0 w-full md:w-10 bg-black/20 border"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>

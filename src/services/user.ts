@@ -97,53 +97,67 @@ export const getAllUsersService = async ({
     order = 'desc'
 }: GetAllUsersParams = {}): Promise<PaginatedUsersResponse> => {
     try {
-        // Calculate offset
-        const offset = (page - 1) * limit;
+        // Validate input parameters
+        const validatedPage = Math.max(1, page);
+        const validatedLimit = Math.max(1, Math.min(25, limit));
+        const offset = (validatedPage - 1) * validatedLimit;
 
         // Get total count for pagination
         const totalUsers = await db.select({ count: count() })
             .from(userTable)
             .then(res => Number(res[0].count));
 
+        // Ensure orderBy is a valid column
+        const validColumns = ['createdAt', 'id', 'name', 'email'];
+        const validatedOrderBy = validColumns.includes(orderBy) ? orderBy : 'createdAt';
+
         // Get users with pagination
         const users = await db.query.userTable.findMany({
-            limit: limit,
+            limit: validatedLimit,
             offset: offset,
             orderBy: order === 'desc'
-                ? [desc(userTable[orderBy])]
-                : [userTable[orderBy]],
+                ? [desc(userTable[validatedOrderBy])]
+                : [userTable[validatedOrderBy]],
         });
 
         // Get social media links for all users
         const usersWithSocialMedia = await Promise.all(
             users.map(async (user) => {
-                const socialMediaLinks = await getSocialMediaService(user.id);
-                return {
-                    ...user,
-                    socialMediaLinks: socialMediaLinks.map((l) => ({
-                        platform: l.platform,
-                        url: l.link
-                    }))
-                };
+                try {
+                    const socialMediaLinks = await getSocialMediaService(user.id);
+                    return {
+                        ...user,
+                        socialMediaLinks: socialMediaLinks.map((l) => ({
+                            platform: l.platform,
+                            url: l.link
+                        }))
+                    };
+                } catch (error) {
+                    // If social media fetch fails for a user, return user without social media
+                    console.error(`Failed to fetch social media for user ${user.id}:`, error);
+                    return {
+                        ...user,
+                        socialMediaLinks: []
+                    };
+                }
             })
         );
 
-        // Calculate pagination metadata
-        const totalPages = Math.ceil(totalUsers / limit);
+        const totalPages = Math.ceil(totalUsers / validatedLimit);
 
         return {
             users: usersWithSocialMedia,
             metadata: {
-                currentPage: page,
+                currentPage: validatedPage,
                 totalPages,
                 totalUsers,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1
+                hasNextPage: validatedPage < totalPages,
+                hasPreviousPage: validatedPage > 1
             }
         };
     } catch (error) {
-        console.log('ERROR getAllUsersService:', error);
-        throw new Error('Error retrieving users.');
+        console.error('ERROR getAllUsersService:', error);
+        throw new Error('Failed to retrieve users. Please try again later.');
     }
 }
 

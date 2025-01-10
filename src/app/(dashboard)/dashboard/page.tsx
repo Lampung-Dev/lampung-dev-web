@@ -1,3 +1,4 @@
+import ComingSoon from "@/components/coming-soon";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,6 +7,6 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <p>Dashboard</p>
+    <ComingSoon />
   )
 }

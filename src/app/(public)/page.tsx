@@ -18,6 +18,7 @@ export default async function Home() {
           text="LampungDev.org"
           className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary"
           colors={{ first: '#ffffff', second: "#f0880a" }}
+          sparklesCount={8}
         />
 
         {/* Description */}
