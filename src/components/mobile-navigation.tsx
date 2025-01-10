@@ -20,7 +20,7 @@ export default function MobileNavigation({ menuItems }: { menuItems: { title: st
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white">
-                        <Menu className="h-6 w-6" />
+                        <Menu />
                         <span className="sr-only">Open menu</span>
                     </Button>
                 </SheetTrigger>
@@ -29,6 +29,9 @@ export default function MobileNavigation({ menuItems }: { menuItems: { title: st
                         <SheetTitle className="text-left">Navigation Menu</SheetTitle>
                     </SheetHeader>
                     <div className="flex flex-col gap-4 mt-8">
+                        <Link href="/login">
+                            <Button className="bg-primary">Login</Button>
+                        </Link>
                         {menuItems.map((item) => (
                             <Link
                                 key={item.title}

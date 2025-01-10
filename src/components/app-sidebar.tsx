@@ -6,7 +6,6 @@ import {
   Briefcase,
   CalendarDays,
   LayoutDashboard,
-  MessageCircle,
   Rocket,
   // Settings2,
   SquareUserRound
@@ -32,71 +31,62 @@ const navigations: TNavigation[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Profiles",
-    url: "/dashboard/my-profile",
+    title: "Users",
+    url: "/users",
     icon: SquareUserRound,
+    items: [
+      {
+        title: "My Profile",
+        url: "/users/my-profile",
+      },
+      {
+        title: "Members",
+        url: "/users/members",
+      },
+    ]
   },
   {
     title: "Knowledge Base",
-    url: "/dashboard/knowledge-base",
+    url: "/knowledge-base",
     icon: BookOpen,
     items: [
       {
         title: "Articles",
-        url: "/dashboard/knowledge-base/articles",
+        url: "/knowledge-base/articles",
       },
       {
-        title: "Guides",
-        url: "/dashboard/knowledge-base/guides",
+        title: "Playlist",
+        url: "/knowledge-base/playlist",
       },
     ],
   },
   {
     title: "Community Projects",
-    url: "/dashboard/community-projects",
+    url: "/community-projects",
     icon: Rocket,
     items: [
       {
         title: "Ongoing Projects",
-        url: "/dashboard/community-projects/ongoing",
+        url: "/community-projects/ongoing",
       },
       {
         title: "Completed Projects",
-        url: "/dashboard/community-projects/completed",
-      },
-      {
-        title: "Post a Project",
-        url: "/dashboard/community-projects/post",
-      },
-    ],
-  },
-  {
-    title: "Forums",
-    url: "/dashboard/forums",
-    icon: MessageCircle,
-    items: [
-      {
-        title: "Q&A",
-        url: "/dashboard/forums/q-and-a",
-      },
-      {
-        title: "Discussions",
-        url: "/dashboard/forums/discussions",
+        url: "/community-projects/completed",
       },
     ],
   },
   {
     title: "Events and Meetups",
-    url: "/dashboard/events",
+    url: "/events",
     icon: CalendarDays,
     items: [
       {
         title: "Upcoming Events",
-        url: "/dashboard/events/upcoming",
+        url: "/events/upcoming",
       },
       {
         title: "Past Events",
-        url: "/dashboard/events/past",
+        url: "/events/past",
       },
     ],
   },
@@ -121,16 +111,16 @@ const navigations: TNavigation[] = [
   // },
   {
     title: "Job Board",
-    url: "/dashboard/job-board",
+    url: "/jobs",
     icon: Briefcase,
     items: [
       {
         title: "Available Jobs",
-        url: "/dashboard/job-board/available",
+        url: "/jobs/available",
       },
       {
         title: "Post a Job",
-        url: "/dashboard/job-board/post",
+        url: "/jobs/post",
       },
     ],
   },

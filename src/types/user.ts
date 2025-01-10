@@ -32,3 +32,35 @@ export type SocialMediaLink = {
     platform: string;
     url: string;
 }
+
+export type GetAllUsersParams = {
+    page?: number;
+    limit?: number;
+    orderBy?: 'createdAt' | 'name';
+    order?: 'asc' | 'desc';
+}
+
+export type PaginatedUsersResponse = {
+    users: {
+        id: string;
+        name: string | null;
+        email: string;
+        picture: string | null;
+        role: string;
+        title: string | null;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+        socialMediaLinks: {
+            platform: string;
+            url: string;
+        }[];
+    }[];
+    metadata: {
+        currentPage: number;
+        totalPages: number;
+        totalUsers: number;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+    };
+}
