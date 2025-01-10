@@ -1,3 +1,4 @@
+import { SparklesText } from "@/components/sparkles-text";
 import { auth } from "@/lib/next-auth";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -12,8 +13,11 @@ export default async function Events() {
         redirect('/dashboard')
     }
     return (
-        <div className="max-w-7xl mx-auto">
-            <p>Coming Soon</p>
+        <div className="min-h-[80vh] flex items-center justify-center px-4">
+            <SparklesText
+                text="Coming Soon"
+                className="text-4xl md:text-6xl lg:text-7xl font-bold"
+            />
         </div>
     );
 }
