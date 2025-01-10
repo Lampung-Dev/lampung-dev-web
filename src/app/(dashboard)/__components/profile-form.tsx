@@ -10,6 +10,7 @@ import SelectPlatform from "./select-platform";
 import { Button } from "@/components/ui/button";
 import { SocialMediaLink, UserProfile } from "@/types/user";
 import { updateUserAction } from "@/actions/update-user-action";
+import { Separator } from "@/components/ui/separator";
 
 export default function ProfileForm({ user }: { user: UserProfile }) {
     const [name, setName] = useState(user.name)
@@ -129,6 +130,8 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                 )}
             </div>
 
+            <Separator className="mt-4" />
+
             <SelectPlatform
                 setSocialMediaLinks={setSocialMediaLinks}
                 socialMediaLinks={socialMediaLinks}
@@ -141,7 +144,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
             <div className="flex justify-end pt-4">
                 <Button
                     type="submit"
-                    className="w-36"
+                    className="w-full md:w-36"
                     disabled={isLoading}
                 >
                     {isLoading ? "Processing..." : "Save"}
