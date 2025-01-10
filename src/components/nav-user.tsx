@@ -25,7 +25,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { signOut } from "next-auth/react"
-import { redirect } from "next/navigation"
 
 export function NavUser({
   user,
@@ -39,9 +38,10 @@ export function NavUser({
   const { isMobile } = useSidebar()
 
   const handleLogout = async () => {
-    await signOut();
+    await signOut({
+      redirectTo: "/"
+    });
 
-    redirect('/login')
   }
 
   return (

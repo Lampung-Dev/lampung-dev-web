@@ -14,8 +14,8 @@ export default async function LoginPage() {
   if (session) redirect('/dashboard')
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col items-center justify-center gap-6 bg-green-600/10 backdrop-blur-sm p-6 md:p-10 rounded-xl border">
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <div className="flex flex-col items-center justify-center gap-6 bg-green-600/10 backdrop-blur-sm p-6 md:p-10 rounded-xl border max-w-[20rem]">
         <div className="flex w-full max-w-sm flex-col gap-6 items-center">
           <Image
             src="/images/logo.png"
