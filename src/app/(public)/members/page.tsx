@@ -106,9 +106,9 @@ export default async function Members({
                             image: user.picture || "/images/placeholder-image.jpeg",
                             name: user.name || "Anonymous Member",
                             title: user.title || "Member",
-                            social_media: user.socialMediaLinks.map((link) => ({
+                            social_media: user.socialMedia.map((link) => ({
                                 platform: `/icons/${link.platform.toLowerCase()}.svg`,
-                                url: link.url
+                                url: link.link
                             }))
                         }}
                         index={i}

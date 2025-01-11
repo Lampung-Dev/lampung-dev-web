@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, index, uuid } from "drizzle-orm/pg-core";
-import { type InferSelectModel } from "drizzle-orm";
+import { relations, type InferSelectModel } from "drizzle-orm";
 
 export const userTable = pgTable("user", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -51,6 +51,19 @@ export const socialMediaTable = pgTable("social_media", {
 }, (table) => [
   index("social_media_user_id_idx").on(table.userId)
 ]);
+
+// Define relations for the user table
+export const userRelations = relations(userTable, ({ many }) => ({
+  socialMedia: many(socialMediaTable),
+}));
+
+// Define relations for the social media table
+export const socialMediaRelations = relations(socialMediaTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [socialMediaTable.userId],
+    references: [userTable.id],
+  }),
+}));
 
 export type TUser = InferSelectModel<typeof userTable>;
 export type TSession = InferSelectModel<typeof sessionTable>;
