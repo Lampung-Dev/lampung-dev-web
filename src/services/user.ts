@@ -118,35 +118,15 @@ export const getAllUsersService = async ({
             orderBy: order === 'desc'
                 ? [desc(userTable[validatedOrderBy])]
                 : [userTable[validatedOrderBy]],
+            with: {
+                socialMedia: true,
+            },
         });
-
-        // Get social media links for all users
-        const usersWithSocialMedia = await Promise.all(
-            users.map(async (user) => {
-                try {
-                    const socialMediaLinks = await getSocialMediaService(user.id);
-                    return {
-                        ...user,
-                        socialMediaLinks: socialMediaLinks.map((l) => ({
-                            platform: l.platform,
-                            url: l.link
-                        }))
-                    };
-                } catch (error) {
-                    // If social media fetch fails for a user, return user without social media
-                    console.error(`Failed to fetch social media for user ${user.id}:`, error);
-                    return {
-                        ...user,
-                        socialMediaLinks: []
-                    };
-                }
-            })
-        );
 
         const totalPages = Math.ceil(totalUsers / validatedLimit);
 
         return {
-            users: usersWithSocialMedia,
+            users,
             metadata: {
                 currentPage: validatedPage,
                 totalPages,

@@ -33,40 +33,57 @@ interface Member {
     }[];
 }
 
-const MemberCard = ({ member, index }: { member: Member; index: number }) => (
-    <div
-        key={index}
-        className="w-full border border-white flex flex-col justify-center items-center p-4 md:p-6 rounded-lg backdrop-blur-sm bg-green-600/10 transition-all hover:scale-105 hover:shadow-lg"
-    >
-        <AvatarClient imageUrl={member.image} />
-        <h3 className="mt-3 md:mt-4 text-base md:text-lg text-center font-medium line-clamp-2">
-            {member.name}
-        </h3>
-        <Badge variant="default" className="mt-2 md:mt-4 text-xs md:text-sm">
-            {member.title}
-        </Badge>
-        <div className="grid grid-cols-4 gap-2 mt-3 md:mt-4">
-            {member.social_media.map((socmed, idx) => (
-                <Link
-                    href={socmed.url}
-                    key={idx}
-                    className={`bg-white rounded-full p-1.5 transition-all hover:opacity-80 hover:scale-110 ${!socmed.url && 'opacity-50 cursor-not-allowed'
-                        }`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <Image
-                        src={socmed.platform}
-                        alt={`${member.name} - ${socmed.platform.split('/').pop()}`}
-                        width={16}
-                        height={16}
-                        className="w-4 h-4"
-                    />
-                </Link>
-            ))}
+const MemberCard = ({ member, index }: { member: Member; index: number }) => {
+    const getGridColsClass = (length: number) => {
+        switch (length) {
+            case 1:
+                return "grid-cols-1";
+            case 2:
+                return "grid-cols-2";
+            case 3:
+                return "grid-cols-3";
+            default:
+                return "grid-cols-4";
+        }
+    };
+
+    return (
+        <div
+            key={index}
+            className="w-full border border-white flex flex-col justify-center items-center p-4 md:p-6 rounded-lg backdrop-blur-sm bg-green-600/10 transition-all hover:scale-105 hover:shadow-lg"
+        >
+            <AvatarClient imageUrl={member.image} />
+            <h3 className="mt-3 md:mt-4 text-base md:text-lg text-center font-medium line-clamp-2">
+                {member.name}
+            </h3>
+            <Badge variant="default" className="mt-2 md:mt-4 text-xs md:text-sm">
+                {member.title}
+            </Badge>
+            <div className="flex justify-center mt-3 md:mt-4">
+                <div className={`grid ${getGridColsClass(member.social_media.length)} gap-2 w-fit`}>
+                    {member.social_media.map((socmed, idx) => (
+                        <Link
+                            href={socmed.url}
+                            key={idx}
+                            className={`flex items-center justify-center bg-white rounded-full w-8 h-8 transition-all ${!socmed.url && 'opacity-50 cursor-not-allowed'
+                                }`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Image
+                                src={socmed.platform}
+                                alt={`${member.name} - ${socmed.platform.split('/').pop()}`}
+                                width={20}
+                                height={20}
+                                className="w-5 h-5"
+                            />
+                        </Link>
+                    ))}
+                </div>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default async function Members({
     searchParams,
@@ -106,9 +123,9 @@ export default async function Members({
                             image: user.picture || "/images/placeholder-image.jpeg",
                             name: user.name || "Anonymous Member",
                             title: user.title || "Member",
-                            social_media: user.socialMediaLinks.map((link) => ({
+                            social_media: user.socialMedia.map((link) => ({
                                 platform: `/icons/${link.platform.toLowerCase()}.svg`,
-                                url: link.url
+                                url: link.link
                             }))
                         }}
                         index={i}

@@ -51,9 +51,9 @@ export type PaginatedUsersResponse = {
         status: string;
         createdAt: Date;
         updatedAt: Date;
-        socialMediaLinks: {
+        socialMedia: {
             platform: string;
-            url: string;
+            link: string;
         }[];
     }[];
     metadata: {
