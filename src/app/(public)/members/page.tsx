@@ -5,19 +5,11 @@ import { Metadata } from "next";
 
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
 import { auth } from "@/lib/next-auth";
 import { redirect } from "next/navigation";
 import { getAllUserPagination } from "@/actions/users/get-all-users";
 import AvatarClient from "../_components/avatar-client";
+import { CustomPagination } from "@/components/custom-pagination";
 
 export const metadata: Metadata = {
     title: "Members",
@@ -99,7 +91,7 @@ export default async function Members({
     const limit = 8;
 
     const response = await getAllUserPagination({
-        page: typeof page === 'string' ? parseInt(page) : 1,
+        page,
         limit,
         orderBy: 'createdAt',
         order: 'asc'
@@ -143,50 +135,12 @@ export default async function Members({
                 )}
             </div>
 
-            <Pagination>
-                <PaginationContent className="flex flex-wrap gap-2 justify-center">
-                    {metadata.hasPreviousPage && (
-                        <PaginationItem>
-                            <PaginationPrevious href={`?page=${page - 1}`} />
-                        </PaginationItem>
-                    )}
-
-                    {Array.from({ length: metadata.totalPages }, (_, i) => i + 1).map((pageNum) => {
-                        if (
-                            pageNum === 1 ||
-                            pageNum === metadata.totalPages ||
-                            (pageNum >= page - 1 && pageNum <= page + 1)
-                        ) {
-                            return (
-                                <PaginationItem key={pageNum}>
-                                    <PaginationLink
-                                        href={`?page=${pageNum}`}
-                                        isActive={pageNum === page}
-                                    >
-                                        {pageNum}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            );
-                        } else if (
-                            pageNum === page - 2 ||
-                            pageNum === page + 2
-                        ) {
-                            return (
-                                <PaginationItem key={pageNum}>
-                                    <PaginationEllipsis />
-                                </PaginationItem>
-                            );
-                        }
-                        return null;
-                    })}
-
-                    {metadata.hasNextPage && (
-                        <PaginationItem>
-                            <PaginationNext href={`?page=${page + 1}`} />
-                        </PaginationItem>
-                    )}
-                </PaginationContent>
-            </Pagination>
+            <CustomPagination
+                currentPage={page}
+                totalPages={metadata.totalPages}
+                hasPreviousPage={metadata.hasPreviousPage}
+                hasNextPage={metadata.hasNextPage}
+            />
         </div>
     );
 }
