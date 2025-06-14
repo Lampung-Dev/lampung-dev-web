@@ -28,8 +28,8 @@ export function NavMain({ nav }: { nav: TNavigation[] }) {
   };
 
   const isLinkActive = (url: string) => {
-    return pathname === url
-  }
+    return pathname === url;
+  };
 
   return (
     <SidebarGroup>
@@ -54,9 +54,11 @@ export function NavMain({ nav }: { nav: TNavigation[] }) {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}
-                        >
-                          <SidebarMenuSubButton asChild isActive={isLinkActive(subItem.url)}>
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={isLinkActive(subItem.url)}
+                          >
                             <Link href={subItem.url}>
                               <span>{subItem.title}</span>
                             </Link>
@@ -68,7 +70,10 @@ export function NavMain({ nav }: { nav: TNavigation[] }) {
                 </>
               ) : (
                 <Link href={item.url} className="flex items-center space-x-2">
-                  <SidebarMenuButton tooltip={item.title} isActive={isLinkActive(item.url)}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={isLinkActive(item.url)}
+                  >
                     {item.icon && <item.icon size={16} />}
                     <span>{item.title}</span>
                   </SidebarMenuButton>
