@@ -2,9 +2,9 @@ name: Build and Push Docker Image CI
 
 on:
   push:
-    branches: [ "feature/dockerize" ]
+    branches: [ "development" ]
   pull_request:
-    branches: [ "feature/dockerize" ]
+    branches: [ "development" ]
 
 jobs:
   build_and_push:
