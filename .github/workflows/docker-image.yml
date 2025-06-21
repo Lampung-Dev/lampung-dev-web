@@ -2,7 +2,7 @@ name: Docker Image CI - Development
 
 on:
   push:
-    branches: [ "development" ]
+    branches: [ "main" ]
     
 jobs:
   build_and_push:
@@ -30,4 +30,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lampung-dev-web:dev${{ steps.sha.outputs.short_sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lampung-dev-web:prod${{ steps.sha.outputs.short_sha }}
