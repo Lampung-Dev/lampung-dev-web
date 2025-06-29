@@ -1,14 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -16,11 +14,20 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { TNavigation } from "@/types/navigation";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
-export function NavMain({ nav }: { nav: TNavigation[] }) {
+export function NavMain({
+  nav,
+  groupLabel,
+}: {
+  nav: TNavigation[];
+  groupLabel?: string;
+}) {
   const pathname = usePathname();
 
   const navHaveChildren = (item: TNavigation) => {
@@ -33,6 +40,7 @@ export function NavMain({ nav }: { nav: TNavigation[] }) {
 
   return (
     <SidebarGroup>
+      {groupLabel && <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>}
       <SidebarMenu>
         {nav.map((item) => (
           <Collapsible

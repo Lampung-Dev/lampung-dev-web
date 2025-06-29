@@ -47,6 +47,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     })
                 }
 
+                params.session.user.role = existingUser?.role
+
                 return params.session
 
             } catch (error) {

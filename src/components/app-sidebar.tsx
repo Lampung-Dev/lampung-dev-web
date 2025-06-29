@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import * as React from "react"
 import {
   BookOpen,
   Briefcase,
   CalendarDays,
   LayoutDashboard,
   Rocket,
-  // Settings2,
-  SquareUserRound
-} from "lucide-react"
+  Settings2,
+  SquareUserRound,
+} from "lucide-react";
+import * as React from "react";
+import { AvatarImage } from "@radix-ui/react-avatar";
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { TNavigation } from "@/types/navigation"
-import { Avatar } from "./ui/avatar"
-import { AvatarImage } from "@radix-ui/react-avatar"
+} from "@/components/ui/sidebar";
+import { Avatar } from "./ui/avatar";
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
+import { TNavigation } from "@/types/navigation";
 
 const navigations: TNavigation[] = [
   {
@@ -43,7 +43,7 @@ const navigations: TNavigation[] = [
         title: "Members",
         url: "/users/members",
       },
-    ]
+    ],
   },
   {
     title: "Knowledge Base",
@@ -90,25 +90,6 @@ const navigations: TNavigation[] = [
       },
     ],
   },
-  // {
-  //   title: "Admin Panel",
-  //   url: "/dashboard/admin",
-  //   icon: Settings2,
-  //   items: [
-  //     {
-  //       title: "Member Management",
-  //       url: "/dashboard/admin/members",
-  //     },
-  //     {
-  //       title: "Content Moderation",
-  //       url: "/dashboard/admin/moderation",
-  //     },
-  //     {
-  //       title: "Analytics",
-  //       url: "/dashboard/admin/analytics",
-  //     },
-  //   ],
-  // },
   {
     title: "Job Board",
     url: "/jobs",
@@ -126,8 +107,28 @@ const navigations: TNavigation[] = [
   },
 ];
 
+const adminNavigations: TNavigation[] = [
+  {
+    title: "Member Management",
+    url: "/admin/members",
+    icon: Settings2,
+  },
+  // {
+  //   title: "Content Moderation",
+  //   url: "/dashboard/admin/moderation",
+  //   icon: Settings2,
+  // },
+  // {
+  //   title: "Analytics",
+  //   url: "/dashboard/admin/analytics",
+  //   icon: Settings2,
+  // },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const userRole = props.user?.role;
+  const canManage = userRole === "ADMIN" || userRole === "MODERATOR";
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -139,19 +140,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             />
           </Avatar>
           <div className="grid flex-1 text-left text-xl leading-tight">
-            <span className="truncate font-semibold">
-              Lampung Dev
-            </span>
+            <span className="truncate font-semibold">Lampung Dev</span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain nav={navigations} />
+        {canManage && (
+          <NavMain nav={adminNavigations} groupLabel="Admin Panel" />
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={props.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
