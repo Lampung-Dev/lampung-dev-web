@@ -7,10 +7,10 @@
     "build": "next build",
     "start": "next start -p 3050",
     "lint": "next lint",
-    "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:drop": "drizzle-kit drop",
-    "drizzle:studio": "drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
     "seed": "tsx --require dotenv/config src/scripts/seed.ts"
   },
   "dependencies": {
