@@ -1,3 +1,9 @@
+## [1.5.0] - 2025-06-21
+
+### What's Changed
+
+- adding dockerfile and docker-compose
+
 ## [1.4.0] - 2025-06-14
 
 ### What's Changed
