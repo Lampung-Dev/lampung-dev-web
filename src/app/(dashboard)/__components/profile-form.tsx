@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -13,32 +13,38 @@ import { updateUserAction } from "@/actions/update-user-action";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfileForm({ user }: { user: UserProfile }) {
-    const [name, setName] = useState(user.name)
-    const [email, setEmail] = useState(user.email)
-    const [title, setTitle] = useState(user.title)
-    const [socialMediaLinks, setSocialMediaLinks] = useState<SocialMediaLink[]>([])
-    const [isLoading, setIsLoading] = useState(false)
+    const [name, setName] = useState(user.name);
+    const [email, setEmail] = useState(user.email);
+    const [title, setTitle] = useState(user.title);
+    const [socialMediaLinks, setSocialMediaLinks] = useState<SocialMediaLink[]>(
+        []
+    );
+    const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{
         name?: boolean;
         title?: boolean;
         socialMedia?: boolean;
-    }>({})
+    }>({});
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
-        setErrors(prev => ({ ...prev, name: !e.target.value.trim() }));
+        setErrors((prev) => ({ ...prev, name: !e.target.value.trim() }));
     };
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value);
-        setErrors(prev => ({ ...prev, title: !e.target.value.trim() }));
+        setErrors((prev) => ({ ...prev, title: !e.target.value.trim() }));
     };
 
     const validateForm = () => {
         const newErrors = {
             name: !name.trim(),
             title: !title.trim(),
-            socialMedia: socialMediaLinks.length > 0 && socialMediaLinks.some(link => !link.platform || !link.url.trim())
+            socialMedia:
+                socialMediaLinks.length > 0 &&
+                socialMediaLinks.some(
+                    (link) => !link.platform || !link.url.trim()
+                ),
         };
 
         setErrors(newErrors);
@@ -49,7 +55,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
         e.preventDefault();
 
         if (!validateForm()) {
-            toast.error('Please fill in all required fields.');
+            toast.error("Please fill in all required fields.");
             return;
         }
 
@@ -57,15 +63,21 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
             setIsLoading(true);
 
             const formData = new FormData();
-            formData.append('name', name);
-            formData.append('title', title);
-            formData.append('email', email);
-            formData.append('socialMediaLinks', JSON.stringify(socialMediaLinks));
+            formData.append("name", name);
+            formData.append("title", title);
+            formData.append("email", email);
+            formData.append(
+                "socialMediaLinks",
+                JSON.stringify(socialMediaLinks)
+            );
 
             await updateUserAction(formData);
-            toast.success('Success update profile data.');
+            toast.success("Success update profile data.");
         } catch (error) {
-            errorHandler({ error: error as Error, secondErrorMessage: 'Failed to update profile data.' })
+            errorHandler({
+                error: error as Error,
+                secondErrorMessage: "Failed to update profile data.",
+            });
         } finally {
             setIsLoading(false);
         }
@@ -74,7 +86,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
     useEffect(() => {
         setName(user.name);
         setEmail(user.email);
-        setTitle(user.title || '');
+        setTitle(user.title || "");
         setSocialMediaLinks(user.socialMediaLinks || []);
     }, [user]);
 
@@ -91,8 +103,9 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                     placeholder="Name"
                     value={name}
                     onChange={handleNameChange}
-                    className={errors.name ? 'border-red-500' : ''}
+                    className={errors.name ? "border-red-500" : ""}
                     required
+                    maxLength={50}
                 />
                 {errors.name && (
                     <p className="text-sm text-red-500">Name is required</p>
@@ -122,8 +135,9 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                     placeholder="Title"
                     value={title}
                     onChange={handleTitleChange}
-                    className={errors.title ? 'border-red-500' : ''}
+                    className={errors.title ? "border-red-500" : ""}
                     required
+                    maxLength={100}
                 />
                 {errors.title && (
                     <p className="text-sm text-red-500">Title is required</p>
@@ -137,7 +151,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                 socialMediaLinks={socialMediaLinks}
                 hasError={errors.socialMedia}
                 onValidationChange={(isValid) =>
-                    setErrors(prev => ({ ...prev, socialMedia: !isValid }))
+                    setErrors((prev) => ({ ...prev, socialMedia: !isValid }))
                 }
             />
 
@@ -151,5 +165,5 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                 </Button>
             </div>
         </form>
-    )
+    );
 }
