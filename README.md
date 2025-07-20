@@ -21,23 +21,23 @@ A modern web platform built for Lampung developers to collaborate, learn, and gr
 1. **Generate**:  
    Create or update schema definitions based on your database structure.
 
-   ```bash
-   bun db:generate
-   ```
+    ```bash
+    bun db:generate
+    ```
 
 2. **Migrate**:  
    Apply the generated migrations to update your database schema.
 
-   ```bash
-   bun db:migrate
-   ```
+    ```bash
+    bun db:migrate
+    ```
 
 3. **Push**:  
    Push schema changes to your database to ensure everything is in sync.
 
-   ```bash
-   bun db:push
-   ```
+    ```bash
+    bun db:push
+    ```
 
 ---
 
@@ -77,16 +77,16 @@ git checkout -b your-branch-name
 
 #### 💡 Branch Naming Conventions:
 
-- `feature/your-feature`
-- `fix/your-fix`
-- `enhancement/your-enhancement`
-- `chore/your-task`
+-   `feature/your-feature`
+-   `fix/your-fix`
+-   `enhancement/your-enhancement`
+-   `chore/your-task`
 
 Examples:
 
-- `feature/new-homepage`
-- `fix/login-bug`
-- `enhancement/cart-ui`
+-   `feature/new-homepage`
+-   `fix/login-bug`
+-   `enhancement/cart-ui`
 
 ### 6. Run the Development Server
 
@@ -94,13 +94,39 @@ Examples:
 bun run dev
 ```
 
-### 7. Push Your Changes
+### 7. Seed Your Database (Optional)
+
+To populate your local database with sample data, run the seed script:
+
+```bash
+bun run seed
+```
+
+This script supports the following options:
+
+-   `--refresh`: Clears existing user and social media data before seeding.
+-   `--count <number>`: Specifies the total number of users to generate.
+
+**Examples:**
+
+-   To start fresh and create 20 sample users:
+
+    ```bash
+    bun run seed -- --refresh --count 20
+    ```
+
+-   To add 5 more users to the existing data:
+    ```bash
+    bun run seed -- --count 5
+    ```
+
+### 8. Push Your Changes
 
 ```bash
 git push origin your-branch-name
 ```
 
-### 8. Open a Pull Request
+### 9. Open a Pull Request
 
 Submit a pull request to the `development` branch and wait for review.
 
@@ -125,9 +151,9 @@ For major changes, open an issue first to discuss the idea.
 
 Got questions, ideas, or just want to chat?
 
-- Join our Discord: [LampungDev Discord](https://lampungdev.org/join-discord)
-- Telegram Group: [LampungDev Telegram](https://t.me/lampungdevorg)
-- Whatsapp Group: [LampungDev Whatsapp](https://bit.ly/wagroup-lampungdev)
+-   Join our Discord: [LampungDev Discord](https://lampungdev.org/join-discord)
+-   Telegram Group: [LampungDev Telegram](https://t.me/lampungdevorg)
+-   Whatsapp Group: [LampungDev Whatsapp](https://bit.ly/wagroup-lampungdev)
 
 ---
 
