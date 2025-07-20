@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { getAllUserPagination } from "@/actions/users/get-all-users";
 import AvatarClient from "../_components/avatar-client";
 import { CustomPagination } from "@/components/custom-pagination";
+import { truncateString } from "@/lib/utils";
 
 export const metadata: Metadata = {
     title: "Members",
@@ -46,25 +47,35 @@ const MemberCard = ({ member, index }: { member: Member; index: number }) => {
         >
             <AvatarClient imageUrl={member.image} />
             <h3 className="mt-3 md:mt-4 text-base md:text-lg text-center font-medium line-clamp-2">
-                {member.name}
+                {truncateString(member.name, 20)}
             </h3>
-            <Badge variant="default" className="mt-2 md:mt-4 text-xs md:text-sm">
-                {member.title}
+            <Badge
+                variant="default"
+                className="mt-2 md:mt-4 text-xs md:text-sm"
+            >
+                {truncateString(member.title, 30)}
             </Badge>
             <div className="flex justify-center mt-3 md:mt-4">
-                <div className={`grid ${getGridColsClass(member.social_media.length)} gap-2 w-fit`}>
+                <div
+                    className={`grid ${getGridColsClass(
+                        member.social_media.length
+                    )} gap-2 w-fit`}
+                >
                     {member.social_media.map((socmed, idx) => (
                         <Link
                             href={socmed.url}
                             key={idx}
-                            className={`flex items-center justify-center bg-white rounded-full w-8 h-8 transition-all ${!socmed.url && 'opacity-50 cursor-not-allowed'
-                                }`}
+                            className={`flex items-center justify-center bg-white rounded-full w-8 h-8 transition-all ${
+                                !socmed.url && "opacity-50 cursor-not-allowed"
+                            }`}
                             target="_blank"
                             rel="noopener noreferrer"
                         >
                             <Image
                                 src={socmed.platform}
-                                alt={`${member.name} - ${socmed.platform.split('/').pop()}`}
+                                alt={`${member.name} - ${socmed.platform
+                                    .split("/")
+                                    .pop()}`}
                                 width={20}
                                 height={20}
                                 className="w-5 h-5"
@@ -80,21 +91,21 @@ const MemberCard = ({ member, index }: { member: Member; index: number }) => {
 export default async function Members({
     searchParams,
 }: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     const session = await auth();
     if (session) {
-        redirect('/dashboard');
+        redirect("/dashboard");
     }
-    const paramPage = (await searchParams).page
-    const page = typeof paramPage === 'string' ? parseInt(paramPage) : 1
+    const paramPage = (await searchParams).page;
+    const page = typeof paramPage === "string" ? parseInt(paramPage) : 1;
     const limit = 8;
 
     const response = await getAllUserPagination({
         page,
         limit,
-        orderBy: 'createdAt',
-        order: 'asc'
+        orderBy: "createdAt",
+        order: "asc",
     });
 
     if (!response) {
@@ -112,13 +123,15 @@ export default async function Members({
                     <MemberCard
                         key={user.id}
                         member={{
-                            image: user.picture || "/images/placeholder-image.jpeg",
+                            image:
+                                user.picture ||
+                                "/images/placeholder-image.jpeg",
                             name: user.name || "Anonymous Member",
                             title: user.title || "Member",
                             social_media: user.socialMedia.map((link) => ({
                                 platform: `/icons/${link.platform.toLowerCase()}.svg`,
-                                url: link.link
-                            }))
+                                url: link.link,
+                            })),
                         }}
                         index={i}
                     />
@@ -129,7 +142,9 @@ export default async function Members({
                         <Avatar className="w-24 h-24 lg:w-28 lg:h-28 border-4 border-primary">
                             <AvatarImage src="/images/placeholder-image.jpeg" />
                         </Avatar>
-                        <p className="mt-4 text-lg font-medium">New Member Soon</p>
+                        <p className="mt-4 text-lg font-medium">
+                            New Member Soon
+                        </p>
                         <div className="mt-4 h-8" />
                     </div>
                 )}
