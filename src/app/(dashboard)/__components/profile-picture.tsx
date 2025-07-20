@@ -10,7 +10,6 @@ import "react-image-crop/dist/ReactCrop.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { uploadImageAction } from "@/actions/upload-image-action";
 import {
   Dialog,
   DialogContent,
@@ -106,37 +105,41 @@ export default function ProfilePicture({ user }: Props) {
   const handleCropComplete = useCallback(async () => {
     if (!imageRef) return;
 
+    const oldPhoto = photo;
+
     try {
       const croppedBlob = await getCroppedImg(imageRef, crop as PixelCrop);
       const formData = new FormData();
       formData.append("image", croppedBlob, "cropped-image.jpg");
       formData.append("email", user.email);
 
-      const oldPhoto = photo;
       setPhoto(URL.createObjectURL(croppedBlob));
       setIsOpen(false);
       setIsLoading(true);
 
-      uploadImageAction(formData)
-        .then(() => {
-          setIsLoading(false);
-          toast.success("Profile photo updated successfully.");
-        })
-        .catch((error) => {
-          console.error("Upload error:", error);
-          setPhoto(oldPhoto);
-          errorHandler({
-            error: error as Error,
-            secondErrorMessage: "Failed to update profile photo.",
-          });
-          setIsLoading(false);
-        });
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unknown upload error.");
+      }
+
+      setIsLoading(false);
+      toast.success("Profile photo updated successfully.");
     } catch (error) {
-      console.error("Cropping error:", error);
-      toast.error("Error cropping the image.");
+      console.error("Upload or cropping error:", error);
+      setPhoto(oldPhoto); // use saved photo value
+      errorHandler({
+        error: error as Error,
+        secondErrorMessage: "Failed to update profile photo.",
+      });
+      setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageRef, crop, getCroppedImg, photo]);
+  }, [imageRef, crop, getCroppedImg, photo, user.email]);
 
   return (
     <>
