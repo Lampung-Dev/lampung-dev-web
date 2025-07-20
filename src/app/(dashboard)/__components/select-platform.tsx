@@ -158,6 +158,7 @@ export default function SelectPlatform({
                                     value={link.url}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                         updateSocialMedia(index, 'url', e.target.value)}
+                                    maxLength={100}
                                     className={`mt-1.5 ${errors[index]?.url ? 'border-red-500' : ''}`}
                                     required
                                 />
