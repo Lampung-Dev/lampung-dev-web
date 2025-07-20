@@ -26,12 +26,27 @@ async function updateUserBase(formData: FormData) {
             socialMediaLinksJson
         ) as SocialMediaLink[];
 
-        if (name.length > 50) {
-            throw new Error("Name cannot exceed 50 characters");
+        if (!email) {
+            throw new Error("Email is required.");
+        }
+        
+        if (!name && name.length > 50) {
+            throw new Error("Name is required and cannot exceed 50 characters");
         }
 
-        if (title.length > 100) {
-            throw new Error("Title cannot exceed 100 characters");
+        if (!title && title.length > 100) {
+            throw new Error("Title is required and cannot exceed 100 characters");
+        }
+
+        if (Array.isArray(socialMediaLinks)) {
+            for (const { platform, url } of socialMediaLinks) {
+                if (!platform || platform.length > 30) {
+                    throw new Error("Social media Platform is required and cannot exceed 30 characters.");
+                }
+                if (!url || url.length > 100) {
+                    throw new Error("Social media URL is required and cannot exceed 100 characters.");
+                }
+            }
         }
 
         // Get user by email since that's what we have in the session

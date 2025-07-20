@@ -1,12 +1,12 @@
-import { pgTable, text, timestamp, index, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, index, uuid, varchar } from "drizzle-orm/pg-core";
 import { relations, type InferSelectModel } from "drizzle-orm";
 
 export const userTable = pgTable("user", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 50 }).notNull(),
   email: text("email").notNull().unique(),
   picture: text("picture").notNull(),
-  title: text('title'),
+  title: varchar("title", { length: 100 }),
   passwordHash: text("password_hash"),
   role: text("role", { enum: ['ADMIN', 'MODERATOR', 'USER'] })
     .default("USER")
