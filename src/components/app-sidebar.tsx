@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   BookOpen,
   Briefcase,
@@ -88,6 +89,16 @@ const navigations: TNavigation[] = [
         title: "Past Events",
         url: "/events/past",
       },
+      {
+        title: "Manage Events",
+        url: "/events/manage",
+        adminOnly: true,
+      },
+      {
+        title: "Event Types",
+        url: "/events/event-types",
+        adminOnly: true,
+      },
     ],
   },
   // {
@@ -127,29 +138,39 @@ const navigations: TNavigation[] = [
 ];
 
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: any }) {
+  const filteredNavigations = navigations.map((nav) => ({
+    ...nav,
+    items: nav.items?.filter((item) => {
+      if (item.adminOnly) {
+        return user?.role === "ADMIN";
+      }
+      return true;
+    }),
+  }));
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" user={user} {...props}>
       <SidebarHeader>
-        <div className="flex items-center data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-          <Avatar className="w-6 data-[state=open]:w-36 h-6 data-[state=open]:h-36 mr-2">
+        <Link href="/" className="flex items-center gap-2 px-2 py-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all rounded-lg group">
+          <Avatar className="w-8 h-8 shrink-0 transition-transform group-hover:scale-105">
             <AvatarImage
               src={"/images/logo-square.png"}
               className="object-cover object-top"
             />
           </Avatar>
-          <div className="grid flex-1 text-left text-xl leading-tight">
-            <span className="truncate font-semibold">
+          <div className="grid flex-1 text-left text-xl leading-tight opacity-100 group-data-[collapsible=icon]:opacity-0 transition-opacity">
+            <span className="truncate font-bold bg-gradient-to-r from-green-600 to-yellow-500 bg-clip-text text-transparent">
               Lampung Dev
             </span>
           </div>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain nav={navigations} />
+        <NavMain nav={filteredNavigations} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={props.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

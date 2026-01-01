@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "./mobile-navigation";
 
+import { auth } from "@/lib/next-auth";
+
 const menuItems = [
   { title: "About", href: "/about" },
   { title: "Events", href: "/our-events" },
@@ -12,6 +14,8 @@ const menuItems = [
 ];
 
 export default async function Navbar() {
+  const session = await auth();
+
   return (
     <nav className="fixed top-0 w-full z-20 backdrop-blur-sm bg-black/10 border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,12 +45,19 @@ export default async function Navbar() {
                 {item.title}
               </Link>
             ))}
-            <Link href="/login">
-              <Button className="bg-primary">Login</Button>
-            </Link>
+
+            {session ? (
+              <Link href="/dashboard">
+                <Button className="bg-primary hover:bg-primary/90">Dashboard</Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button className="bg-primary hover:bg-primary/90">Login</Button>
+              </Link>
+            )}
           </div>
 
-          <MobileNavigation menuItems={menuItems} />
+          <MobileNavigation menuItems={menuItems} session={session} />
         </div>
       </div>
     </nav>
