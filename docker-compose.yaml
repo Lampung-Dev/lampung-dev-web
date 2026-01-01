@@ -11,6 +11,15 @@ services:
     command: sh -c "bun db:migrate && bun start"
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/lampungdev
+      # Add these in production:
+      # - SMTP_HOST=smtp.gmail.com
+      # - SMTP_PORT=587
+      # - SMTP_USER=your-email@gmail.com
+      # - SMTP_PASS=your-app-password
+      # - JWT_SECRET=your-secret-key
+      # - CRON_SECRET=your-cron-secret
+    volumes:
+      - uploads:/app/public/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -35,3 +44,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:
