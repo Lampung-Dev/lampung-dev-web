@@ -45,6 +45,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         expiresAt: new Date(params.session.expires),
                         sessionId: existingSession?.id as string
                     })
+
+                    // Add role to session user
+                    if (params.session.user) {
+                        // @ts-ignore
+                        params.session.user.role = existingUser.role;
+                    }
                 }
 
                 return params.session

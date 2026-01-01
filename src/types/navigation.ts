@@ -8,5 +8,6 @@ export type TNavigation = {
     items?: {
         title: string
         url: string
+        adminOnly?: boolean
     }[]
 }

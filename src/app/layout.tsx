@@ -1,10 +1,12 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import { ThemeProvider } from "@/providers/theme-providers";
 import { Toaster } from "@/components/ui/sonner"
+import { AppLoader } from "@/components/app-loader";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
     title: {
@@ -21,15 +23,17 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={`${inter.className} antialiased`}>
+        <html lang="en" suppressHydrationWarning>
+            <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-white`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
                     enableSystem
                     disableTransitionOnChange
                 >
-                    {children}
+                    <AppLoader>
+                        {children}
+                    </AppLoader>
                     <Toaster
                         position="top-right"
                     />
