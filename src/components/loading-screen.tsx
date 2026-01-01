@@ -1,10 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+
+// Generate stable random values for particles
+const generateParticleData = () => {
+  return [...Array(50)].map(() => ({
+    x: Math.random(),
+    y: Math.random(),
+    duration: 2 + Math.random() * 2,
+    delay: Math.random() * 2,
+  }));
+};
 
 export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   const [progress, setProgress] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 1000, height: 800 });
+
+  // Generate particle data only on client
+  const particles = useMemo(() => {
+    if (!mounted) return [];
+    return generateParticleData();
+  }, [mounted]);
+
+  useEffect(() => {
+    setMounted(true);
+    setDimensions({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -28,13 +54,13 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
       transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }}
     >
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(50)].map((_, i) => (
+        {mounted && particles.map((particle, i) => (
           <motion.div
             key={i}
             className="absolute h-1 w-1 rounded-full bg-green-500/30"
             initial={{
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
+              x: particle.x * dimensions.width,
+              y: particle.y * dimensions.height,
               scale: 0,
             }}
             animate={{
@@ -42,9 +68,9 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
               opacity: [0, 0.8, 0],
             }}
             transition={{
-              duration: 2 + Math.random() * 2,
+              duration: particle.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: particle.delay,
               ease: "easeInOut",
             }}
           />

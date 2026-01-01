@@ -51,15 +51,17 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
 
           {/* Instagram Link */}
           {event.instagramUrl && (
-            <a
-              href={event.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(event.instagramUrl!, '_blank', 'noopener,noreferrer');
+              }}
               className="absolute bottom-3 right-3 p-2 rounded-full bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors"
             >
               <Instagram size={18} />
-            </a>
+            </button>
           )}
         </div>
 
