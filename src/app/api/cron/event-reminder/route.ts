@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq, gt, lt, sql } from "drizzle-orm";
+import { and, eq, gt, lt } from "drizzle-orm";
 import db from "@/lib/database";
-import { eventTable, eventRegistrationTable, userTable } from "@/lib/database/schema";
+import { eventTable, eventRegistrationTable } from "@/lib/database/schema";
 import { sendEventReminderEmail } from "@/services/email";
 
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     });
 
     let emailsSent = 0;
-    let errors: string[] = [];
+    const errors: string[] = [];
 
     for (const event of upcomingEvents) {
       // Get all registered users for this event

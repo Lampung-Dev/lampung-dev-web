@@ -5,7 +5,7 @@ import { createRateLimitedAction } from "@/lib/rate-limiter";
 import {
   updateRegistrationStatusService,
   toggleAttendanceService,
-  getRegistrationByIdService
+  getRegistrationByIdService,
 } from "@/services/event-registration";
 import { getEventByIdService } from "@/services/event";
 import { sendWaitingListPromotionEmail } from "@/services/email";
@@ -13,12 +13,15 @@ import { revalidatePath } from "next/cache";
 
 async function updateRegistrationStatusBase(formData: FormData) {
   const session = await auth();
-  if (!session?.user?.email || (session.user as any).role !== 'ADMIN') {
+  if (!session?.user?.email || (session.user as { role?: string }).role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 
   const registrationId = formData.get("registrationId") as string;
-  const status = formData.get("status") as 'REGISTERED' | 'WAITING_LIST' | 'CANCELLED';
+  const status = formData.get("status") as
+    | "REGISTERED"
+    | "WAITING_LIST"
+    | "CANCELLED";
   const eventId = formData.get("eventId") as string;
 
   if (!registrationId || !status) {
@@ -27,7 +30,8 @@ async function updateRegistrationStatusBase(formData: FormData) {
 
   // Check if we are promoting from WAITING_LIST to REGISTERED
   const currentReg = await getRegistrationByIdService(registrationId);
-  const isPromotion = currentReg?.status === 'WAITING_LIST' && status === 'REGISTERED';
+  const isPromotion =
+    currentReg?.status === "WAITING_LIST" && status === "REGISTERED";
 
   await updateRegistrationStatusService(registrationId, status);
 
@@ -44,7 +48,7 @@ async function updateRegistrationStatusBase(formData: FormData) {
           eventImageUrl: event.imageUrl,
           registrationId: currentReg.id,
         }
-      ).catch(err => console.error('Failed to send promotion email:', err));
+      ).catch((err) => console.error("Failed to send promotion email:", err));
     }
   }
 
@@ -57,7 +61,7 @@ async function updateRegistrationStatusBase(formData: FormData) {
 
 async function toggleAttendanceBase(formData: FormData) {
   const session = await auth();
-  if (!session?.user?.email || (session.user as any).role !== 'ADMIN') {
+  if (!session?.user?.email || (session.user as { role?: string }).role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 
@@ -77,12 +81,18 @@ async function toggleAttendanceBase(formData: FormData) {
   return { success: true, attended: updated.attended };
 }
 
-export const updateRegistrationStatusAction = createRateLimitedAction(updateRegistrationStatusBase, {
-  limit: 20,
-  window: 60000,
-});
+export const updateRegistrationStatusAction = createRateLimitedAction(
+  updateRegistrationStatusBase,
+  {
+    limit: 20,
+    window: 60000,
+  }
+);
 
-export const toggleAttendanceAction = createRateLimitedAction(toggleAttendanceBase, {
-  limit: 20,
-  window: 60000,
-});
+export const toggleAttendanceAction = createRateLimitedAction(
+  toggleAttendanceBase,
+  {
+    limit: 20,
+    window: 60000,
+  }
+);

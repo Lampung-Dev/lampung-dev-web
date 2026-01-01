@@ -17,6 +17,7 @@ import {
   Heading1,
   Heading2
 } from "lucide-react";
+import { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
     return null;
   }
@@ -149,7 +150,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
   );
 };
 
-export default function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+export default function RichTextEditor({ content, onChange }: Omit<RichTextEditorProps, 'placeholder'>) {
   const editor = useEditor({
     extensions: [
       StarterKit,

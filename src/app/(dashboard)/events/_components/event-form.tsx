@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ImagePlus, Loader2, Save, X } from "lucide-react";
+import { ImagePlus, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -32,28 +32,41 @@ import { TEvent } from "@/services/event";
 import { createEventAction } from "@/actions/events/create-event-action";
 
 const formSchema = z.object({
-  title: z.string().min(3, "Judul minimal 3 karakter").max(200, "Maksimal 200 karakter"),
+  title: z
+    .string()
+    .min(3, "Judul minimal 3 karakter")
+    .max(200, "Maksimal 200 karakter"),
   description: z.string().min(10, "Deskripsi minimal 10 karakter"),
   eventDate: z.string().min(1, "Tanggal wajib diisi"),
   location: z.string().min(3, "Nama lokasi minimal 3 karakter"),
-  locationMapUrl: z.string().url("URL Google Maps tidak valid").optional().or(z.literal("")),
+  locationMapUrl: z
+    .string()
+    .url("URL Google Maps tidak valid")
+    .optional()
+    .or(z.literal("")),
   maxCapacity: z.string().optional(),
   eventTypeId: z.string().min(1, "Tipe event wajib diisi"),
   registrationStatus: z.enum(["OPEN", "CLOSED"]),
-  instagramUrl: z.string().url("URL Instagram tidak valid").optional().or(z.literal("")),
+  instagramUrl: z
+    .string()
+    .url("URL Instagram tidak valid")
+    .optional()
+    .or(z.literal("")),
 });
 
 type EventFormValues = z.infer<typeof formSchema>;
 
 interface EventFormProps {
-  initialData?: TEvent | any;
+  initialData?: TEvent | null;
   eventTypes: TEventType[];
 }
 
 export function EventForm({ initialData, eventTypes }: EventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialData?.imageUrl || null
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<EventFormValues>({
@@ -116,14 +129,19 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
         formData.append("description", values.description);
         formData.append("eventDate", new Date(values.eventDate).toISOString());
         formData.append("location", values.location);
-        if (values.locationMapUrl) formData.append("locationMapUrl", values.locationMapUrl);
-        if (values.maxCapacity) formData.append("maxCapacity", values.maxCapacity);
+        if (values.locationMapUrl)
+          formData.append("locationMapUrl", values.locationMapUrl);
+        if (values.maxCapacity)
+          formData.append("maxCapacity", values.maxCapacity);
         formData.append("eventTypeId", values.eventTypeId);
         formData.append("registrationStatus", values.registrationStatus);
-        if (values.instagramUrl) formData.append("instagramUrl", values.instagramUrl);
+        if (values.instagramUrl)
+          formData.append("instagramUrl", values.instagramUrl);
         if (imageUrl) formData.append("imageUrl", imageUrl);
 
-        const { updateEventAction } = await import("@/actions/events/update-event-action");
+        const { updateEventAction } = await import(
+          "@/actions/events/update-event-action"
+        );
         await updateEventAction(formData);
         toast.success("Event berhasil diperbarui");
       } else {
@@ -132,11 +150,14 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
         formData.append("description", values.description);
         formData.append("eventDate", new Date(values.eventDate).toISOString());
         formData.append("location", values.location);
-        if (values.locationMapUrl) formData.append("locationMapUrl", values.locationMapUrl);
-        if (values.maxCapacity) formData.append("maxCapacity", values.maxCapacity);
+        if (values.locationMapUrl)
+          formData.append("locationMapUrl", values.locationMapUrl);
+        if (values.maxCapacity)
+          formData.append("maxCapacity", values.maxCapacity);
         formData.append("eventTypeId", values.eventTypeId);
         formData.append("registrationStatus", values.registrationStatus);
-        if (values.instagramUrl) formData.append("instagramUrl", values.instagramUrl);
+        if (values.instagramUrl)
+          formData.append("instagramUrl", values.instagramUrl);
         if (imageUrl) formData.append("imageUrl", imageUrl);
 
         await createEventAction(formData);
@@ -154,7 +175,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto pb-20">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8 max-w-4xl mx-auto pb-20"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <FormField
@@ -164,7 +188,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
                 <FormItem>
                   <FormLabel>Judul Event</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contoh: Tech Talk: AI in 2024" {...field} />
+                    <Input
+                      placeholder="Contoh: Tech Talk: AI in 2024"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -177,7 +204,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipe Event</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih tipe event" />
@@ -217,7 +247,11 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
                   <FormItem>
                     <FormLabel>Kapasitas (Opsional)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Kosongkan jika tak terbatas" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="Kosongkan jika tak terbatas"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -232,7 +266,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
                 <FormItem>
                   <FormLabel>Nama Lokasi</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contoh: Gedung A, Lt. 2 atau Online" {...field} />
+                    <Input
+                      placeholder="Contoh: Gedung A, Lt. 2 atau Online"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -246,7 +283,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
                 <FormItem>
                   <FormLabel>Link Google Maps (Opsional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://maps.google.com/..." {...field} />
+                    <Input
+                      placeholder="https://maps.google.com/..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Masukkan link maps agar peserta bisa langsung menuju lokasi.
@@ -263,7 +303,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
                 <FormItem>
                   <FormLabel>Link Instagram (Opsional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://instagram.com/p/..." {...field} />
+                    <Input
+                      placeholder="https://instagram.com/p/..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -276,7 +319,10 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status Pendaftaran</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih status" />

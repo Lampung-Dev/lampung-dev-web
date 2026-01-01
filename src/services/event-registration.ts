@@ -1,8 +1,12 @@
-import 'server-only'
-import { and, eq, count, asc, inArray } from "drizzle-orm";
+import "server-only";
+import { and, eq, asc, inArray } from "drizzle-orm";
 
 import db from "@/lib/database";
-import { eventRegistrationTable, eventTable, userTable, TEventRegistration } from "@/lib/database/schema";
+import {
+  eventRegistrationTable,
+  eventTable,
+  TEventRegistration,
+} from "@/lib/database/schema";
 import { getEventRegisteredCountService, getEventByIdService } from "./event";
 import { sendWaitingListPromotionEmail } from "./email";
 
@@ -33,7 +37,7 @@ export type TEventRegistrationWithEvent = TEventRegistration & {
 
 export type RegistrationResult = {
   success: boolean;
-  status: 'REGISTERED' | 'WAITING_LIST';
+  status: "REGISTERED" | "WAITING_LIST";
   registration: TEventRegistration;
 };
 
@@ -54,15 +58,18 @@ export const registerToEventService = async (
     });
 
     if (existing) {
-      if (existing.status === 'CANCELLED') {
+      if (existing.status === "CANCELLED") {
         // Re-register cancelled user
-        const registeredCount = await getEventRegisteredCountService(values.eventId);
+        const registeredCount = await getEventRegisteredCountService(
+          values.eventId
+        );
         const event = await db.query.eventTable.findFirst({
           where: eq(eventTable.id, values.eventId),
         });
 
-        const isFull = event?.maxCapacity && registeredCount >= event.maxCapacity;
-        const newStatus = isFull ? 'WAITING_LIST' : 'REGISTERED';
+        const isFull =
+          event?.maxCapacity && registeredCount >= event.maxCapacity;
+        const newStatus = isFull ? "WAITING_LIST" : "REGISTERED";
 
         const [updated] = await db
           .update(eventRegistrationTable)
@@ -77,7 +84,7 @@ export const registerToEventService = async (
 
         return { success: true, status: newStatus, registration: updated };
       }
-      throw new Error('User is already registered for this event.');
+      throw new Error("User is already registered for this event.");
     }
 
     // Check event capacity
@@ -86,16 +93,18 @@ export const registerToEventService = async (
     });
 
     if (!event) {
-      throw new Error('Event not found.');
+      throw new Error("Event not found.");
     }
 
-    if (event.registrationStatus === 'CLOSED') {
-      throw new Error('Registration is closed for this event.');
+    if (event.registrationStatus === "CLOSED") {
+      throw new Error("Registration is closed for this event.");
     }
 
-    const registeredCount = await getEventRegisteredCountService(values.eventId);
+    const registeredCount = await getEventRegisteredCountService(
+      values.eventId
+    );
     const isFull = event.maxCapacity && registeredCount >= event.maxCapacity;
-    const status = isFull ? 'WAITING_LIST' : 'REGISTERED';
+    const status = isFull ? "WAITING_LIST" : "REGISTERED";
 
     const [registration] = await db
       .insert(eventRegistrationTable)
@@ -108,7 +117,7 @@ export const registerToEventService = async (
 
     return { success: true, status, registration };
   } catch (error) {
-    console.error('ERROR registerToEventService:', error);
+    console.error("ERROR registerToEventService:", error);
     throw error;
   }
 };
@@ -130,15 +139,15 @@ export const unregisterFromEventService = async (
     });
 
     if (!registration) {
-      throw new Error('Registration not found.');
+      throw new Error("Registration not found.");
     }
 
-    const wasRegistered = registration.status === 'REGISTERED';
+    const wasRegistered = registration.status === "REGISTERED";
 
     // Cancel the registration
     await db
       .update(eventRegistrationTable)
-      .set({ status: 'CANCELLED' })
+      .set({ status: "CANCELLED" })
       .where(eq(eventRegistrationTable.id, registration.id));
 
     // If user was REGISTERED, promote first person from waiting list
@@ -146,7 +155,7 @@ export const unregisterFromEventService = async (
       await promoteFromWaitingListService(eventId);
     }
   } catch (error) {
-    console.error('ERROR unregisterFromEventService:', error);
+    console.error("ERROR unregisterFromEventService:", error);
     throw error;
   }
 };
@@ -154,12 +163,14 @@ export const unregisterFromEventService = async (
 /**
  * Promote first person from waiting list to registered
  */
-export const promoteFromWaitingListService = async (eventId: string): Promise<void> => {
+export const promoteFromWaitingListService = async (
+  eventId: string
+): Promise<void> => {
   try {
     const firstInWaitingList = await db.query.eventRegistrationTable.findFirst({
       where: and(
         eq(eventRegistrationTable.eventId, eventId),
-        eq(eventRegistrationTable.status, 'WAITING_LIST')
+        eq(eventRegistrationTable.status, "WAITING_LIST")
       ),
       orderBy: [asc(eventRegistrationTable.registeredAt)],
     });
@@ -167,11 +178,11 @@ export const promoteFromWaitingListService = async (eventId: string): Promise<vo
     if (firstInWaitingList) {
       await db
         .update(eventRegistrationTable)
-        .set({ status: 'REGISTERED' })
+        .set({ status: "REGISTERED" })
         .where(eq(eventRegistrationTable.id, firstInWaitingList.id));
     }
   } catch (error) {
-    console.error('ERROR promoteFromWaitingListService:', error);
+    console.error("ERROR promoteFromWaitingListService:", error);
     // Don't throw, this is a background operation
   }
 };
@@ -193,8 +204,8 @@ export const getEventRegistrationsService = async (
 
     return registrations;
   } catch (error) {
-    console.error('ERROR getEventRegistrationsService:', error);
-    throw new Error('Error retrieving event registrations.');
+    console.error("ERROR getEventRegistrationsService:", error);
+    throw new Error("Error retrieving event registrations.");
   }
 };
 
@@ -215,8 +226,8 @@ export const checkUserRegistrationService = async (
 
     return registration || null;
   } catch (error) {
-    console.error('ERROR checkUserRegistrationService:', error);
-    throw new Error('Error checking registration status.');
+    console.error("ERROR checkUserRegistrationService:", error);
+    throw new Error("Error checking registration status.");
   }
 };
 
@@ -232,15 +243,15 @@ export const markAttendanceService = async (
     });
 
     if (!registration) {
-      throw new Error('Registration not found.');
+      throw new Error("Registration not found.");
     }
 
-    if (registration.status !== 'REGISTERED') {
-      throw new Error('Only registered users can be marked as attended.');
+    if (registration.status !== "REGISTERED") {
+      throw new Error("Only registered users can be marked as attended.");
     }
 
     if (registration.attended) {
-      throw new Error('User has already been marked as attended.');
+      throw new Error("User has already been marked as attended.");
     }
 
     const [updated] = await db
@@ -254,7 +265,7 @@ export const markAttendanceService = async (
 
     return updated;
   } catch (error) {
-    console.error('ERROR markAttendanceService:', error);
+    console.error("ERROR markAttendanceService:", error);
     throw error;
   }
 };
@@ -262,7 +273,9 @@ export const markAttendanceService = async (
 /**
  * Get attendance statistics for an event
  */
-export const getAttendanceStatsService = async (eventId: string): Promise<{
+export const getAttendanceStatsService = async (
+  eventId: string
+): Promise<{
   total: number;
   registered: number;
   waitingList: number;
@@ -276,16 +289,17 @@ export const getAttendanceStatsService = async (eventId: string): Promise<{
 
     const stats = {
       total: registrations.length,
-      registered: registrations.filter(r => r.status === 'REGISTERED').length,
-      waitingList: registrations.filter(r => r.status === 'WAITING_LIST').length,
-      attended: registrations.filter(r => r.attended).length,
-      cancelled: registrations.filter(r => r.status === 'CANCELLED').length,
+      registered: registrations.filter((r) => r.status === "REGISTERED").length,
+      waitingList: registrations.filter((r) => r.status === "WAITING_LIST")
+        .length,
+      attended: registrations.filter((r) => r.attended).length,
+      cancelled: registrations.filter((r) => r.status === "CANCELLED").length,
     };
 
     return stats;
   } catch (error) {
-    console.error('ERROR getAttendanceStatsService:', error);
-    throw new Error('Error retrieving attendance statistics.');
+    console.error("ERROR getAttendanceStatsService:", error);
+    throw new Error("Error retrieving attendance statistics.");
   }
 };
 
@@ -306,8 +320,8 @@ export const getUserRegistrationsService = async (
 
     return registrations;
   } catch (error) {
-    console.error('ERROR getUserRegistrationsService:', error);
-    throw new Error('Error retrieving user registrations.');
+    console.error("ERROR getUserRegistrationsService:", error);
+    throw new Error("Error retrieving user registrations.");
   }
 };
 
@@ -327,8 +341,8 @@ export const getRegistrationByIdService = async (
 
     return registration || null;
   } catch (error) {
-    console.error('ERROR getRegistrationByIdService:', error);
-    throw new Error('Error retrieving registration.');
+    console.error("ERROR getRegistrationByIdService:", error);
+    throw new Error("Error retrieving registration.");
   }
 };
 
@@ -348,13 +362,13 @@ export const promoteWaitingListParticipantsService = async (
     const topWaitingList = await db.query.eventRegistrationTable.findMany({
       where: and(
         eq(eventRegistrationTable.eventId, eventId),
-        eq(eventRegistrationTable.status, 'WAITING_LIST')
+        eq(eventRegistrationTable.status, "WAITING_LIST")
       ),
       orderBy: [asc(eventRegistrationTable.registeredAt)],
       limit: availableSlots,
       with: {
         user: true,
-      }
+      },
     });
 
     if (topWaitingList.length === 0) return 0;
@@ -362,15 +376,15 @@ export const promoteWaitingListParticipantsService = async (
     const event = await getEventByIdService(eventId);
     if (!event) return 0;
 
-    const idsToPromote = topWaitingList.map(r => r.id);
+    const idsToPromote = topWaitingList.map((r) => r.id);
 
     await db
       .update(eventRegistrationTable)
-      .set({ status: 'REGISTERED' })
+      .set({ status: "REGISTERED" })
       .where(inArray(eventRegistrationTable.id, idsToPromote));
 
     // Send emails (async)
-    topWaitingList.forEach(reg => {
+    topWaitingList.forEach((reg) => {
       sendWaitingListPromotionEmail(
         { name: reg.user.name, email: reg.user.email },
         {
@@ -380,12 +394,12 @@ export const promoteWaitingListParticipantsService = async (
           eventImageUrl: event.imageUrl,
           registrationId: reg.id,
         }
-      ).catch(err => console.error('Failed to send promotion email:', err));
+      ).catch((err) => console.error("Failed to send promotion email:", err));
     });
 
     return idsToPromote.length;
   } catch (error) {
-    console.error('ERROR promoteWaitingListParticipantsService:', error);
+    console.error("ERROR promoteWaitingListParticipantsService:", error);
     return 0;
   }
 };
@@ -395,7 +409,7 @@ export const promoteWaitingListParticipantsService = async (
  */
 export const updateRegistrationStatusService = async (
   registrationId: string,
-  status: 'REGISTERED' | 'WAITING_LIST' | 'CANCELLED'
+  status: "REGISTERED" | "WAITING_LIST" | "CANCELLED"
 ): Promise<TEventRegistration> => {
   try {
     const [updated] = await db
@@ -405,7 +419,7 @@ export const updateRegistrationStatusService = async (
       .returning();
     return updated;
   } catch (error) {
-    console.error('ERROR updateRegistrationStatusService:', error);
+    console.error("ERROR updateRegistrationStatusService:", error);
     throw error;
   }
 };
@@ -421,7 +435,7 @@ export const toggleAttendanceService = async (
       where: eq(eventRegistrationTable.id, registrationId),
     });
 
-    if (!current) throw new Error('Registration not found');
+    if (!current) throw new Error("Registration not found");
 
     const [updated] = await db
       .update(eventRegistrationTable)
@@ -433,7 +447,7 @@ export const toggleAttendanceService = async (
       .returning();
     return updated;
   } catch (error) {
-    console.error('ERROR toggleAttendanceService:', error);
+    console.error("ERROR toggleAttendanceService:", error);
     throw error;
   }
 };

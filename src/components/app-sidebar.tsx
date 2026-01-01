@@ -25,6 +25,11 @@ import { TNavigation } from "@/types/navigation"
 import { Avatar } from "./ui/avatar"
 import { AvatarImage } from "@radix-ui/react-avatar"
 
+type User = {
+  role?: string;
+  [key: string]: unknown;
+}
+
 const navigations: TNavigation[] = [
   {
     title: "Dashboard",
@@ -138,7 +143,7 @@ const navigations: TNavigation[] = [
 ];
 
 
-export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: any }) {
+export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: User }) {
   const filteredNavigations = navigations.map((nav) => ({
     ...nav,
     items: nav.items?.filter((item) => {

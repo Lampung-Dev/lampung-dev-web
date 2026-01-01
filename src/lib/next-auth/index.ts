@@ -48,7 +48,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
                     // Add role to session user
                     if (params.session.user) {
-                        // @ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         params.session.user.role = existingUser.role;
                     }
                 }

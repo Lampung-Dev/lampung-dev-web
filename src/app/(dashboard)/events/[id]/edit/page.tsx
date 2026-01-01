@@ -30,7 +30,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     <div className="container mx-auto py-6">
       <div className="mb-8 max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold">Edit Event</h1>
-        <p className="text-muted-foreground text-lg">Perbarui informasi event "{event.title}"</p>
+        <p className="text-muted-foreground text-lg">Perbarui informasi event &ldquo;{event.title}&rdquo;</p>
       </div>
 
       <EventForm initialData={event} eventTypes={eventTypes} />

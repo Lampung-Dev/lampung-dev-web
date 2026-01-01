@@ -18,7 +18,7 @@ export default function MobileNavigation({
     session
 }: {
     menuItems: { title: string; href: string }[],
-    session: any
+    session: object | null
 }) {
     const [isOpen, setIsOpen] = useState(false);
 

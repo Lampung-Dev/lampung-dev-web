@@ -5,20 +5,6 @@ import { createRateLimitedAction } from "@/lib/rate-limiter";
 import { createEventService, generateSlug, TNewEvent } from "@/services/event";
 import { createEventTypeService } from "@/services/event-type";
 
-type CreateEventInput = {
-  title: string;
-  description: string;
-  eventTypeId?: string;
-  newEventTypeName?: string; // For inline event type creation
-  newEventTypeColor?: string;
-  location: string;
-  imageUrl: string;
-  instagramUrl?: string;
-  eventDate: string;
-  maxCapacity?: number;
-  registrationStatus?: 'OPEN' | 'CLOSED';
-};
-
 async function createEventBase(formData: FormData) {
   const session = await auth();
   if (!session?.user?.email) {
@@ -27,7 +13,7 @@ async function createEventBase(formData: FormData) {
 
   // Check if user is admin
   const userRole = (session.user as { role?: string })?.role;
-  if (userRole !== 'ADMIN') {
+  if (userRole !== "ADMIN") {
     throw new Error("Hanya admin yang dapat membuat event");
   }
 
@@ -35,15 +21,22 @@ async function createEventBase(formData: FormData) {
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     let eventTypeId = formData.get("eventTypeId") as string | undefined;
-    const newEventTypeName = formData.get("newEventTypeName") as string | undefined;
-    const newEventTypeColor = formData.get("newEventTypeColor") as string | undefined;
+    const newEventTypeName = formData.get("newEventTypeName") as
+      | string
+      | undefined;
+    const newEventTypeColor = formData.get("newEventTypeColor") as
+      | string
+      | undefined;
     const location = formData.get("location") as string;
     const locationMapUrl = formData.get("locationMapUrl") as string | undefined;
     const imageUrl = formData.get("imageUrl") as string;
     const instagramUrl = formData.get("instagramUrl") as string | undefined;
     const eventDateStr = formData.get("eventDate") as string;
     const maxCapacityStr = formData.get("maxCapacity") as string | undefined;
-    const registrationStatus = formData.get("registrationStatus") as 'OPEN' | 'CLOSED' | undefined;
+    const registrationStatus = formData.get("registrationStatus") as
+      | "OPEN"
+      | "CLOSED"
+      | undefined;
     const createdBy = formData.get("createdBy") as string | undefined;
 
     // Validation
@@ -90,7 +83,7 @@ async function createEventBase(formData: FormData) {
       instagramUrl: instagramUrl || undefined,
       eventDate: new Date(eventDateStr),
       maxCapacity,
-      registrationStatus: registrationStatus || 'OPEN',
+      registrationStatus: registrationStatus || "OPEN",
       createdBy,
     };
 

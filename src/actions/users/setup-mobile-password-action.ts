@@ -13,7 +13,7 @@ async function setupMobilePasswordBase(formData: FormData) {
   }
 
   // Check if user is admin
-  const userRole = (session.user as any)?.role;
+  const userRole = (session.user as { role?: string })?.role;
   if (userRole !== 'ADMIN') {
     throw new Error("Hanya admin yang dapat mengatur password mobile");
   }

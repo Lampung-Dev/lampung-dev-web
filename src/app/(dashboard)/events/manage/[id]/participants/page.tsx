@@ -1,13 +1,19 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Users, UserCheck, Clock, AlertCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  Users,
+  UserCheck,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 
 import { auth } from "@/lib/next-auth";
 import { getUserByEmailService } from "@/services/user";
 import { getEventByIdService } from "@/services/event";
 import {
   getEventRegistrationsService,
-  getAttendanceStatsService
+  getAttendanceStatsService,
 } from "@/services/event-registration";
 import { ParticipantActions } from "./_components/participant-actions";
 import { Badge } from "@/components/ui/badge";
@@ -25,17 +31,19 @@ interface ParticipantsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function ParticipantsPage({ params }: ParticipantsPageProps) {
+export default async function ParticipantsPage({
+  params,
+}: ParticipantsPageProps) {
   const { id: eventId } = await params;
   const session = await auth();
 
   if (!session?.user?.email) {
-    redirect('/login');
+    redirect("/login");
   }
 
   const user = await getUserByEmailService(session.user.email);
-  if (!user || user.role !== 'ADMIN') {
-    redirect('/dashboard');
+  if (!user || user.role !== "ADMIN") {
+    redirect("/dashboard");
   }
 
   const event = await getEventByIdService(eventId);
@@ -47,12 +55,12 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
   const stats = await getAttendanceStatsService(eventId);
 
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(new Date(date));
 
   return (
@@ -71,7 +79,7 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
             <p className="text-muted-foreground">{event.title}</p>
           </div>
           <Badge className="bg-primary hover:bg-primary/90 text-white border-0">
-            {event.eventType?.name || 'Event'}
+            {event.eventType?.name || "Event"}
           </Badge>
         </div>
       </div>
@@ -80,25 +88,35 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Terdaftar</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Terdaftar
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.registered}</div>
-            <p className="text-xs text-muted-foreground">Termasuk yang belum hadir</p>
+            <p className="text-xs text-muted-foreground">
+              Termasuk yang belum hadir
+            </p>
           </CardContent>
         </Card>
         <Card className="border-green-500/20 bg-green-500/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Check-in (Hadir)</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Check-in (Hadir)
+            </CardTitle>
             <UserCheck className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.attended}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.attended}
+            </div>
             <p className="text-xs text-muted-foreground">
               {stats.registered > 0
-                ? `${Math.round((stats.attended / stats.registered) * 100)}% kehadiran`
-                : '0% kehadiran'}
+                ? `${Math.round(
+                    (stats.attended / stats.registered) * 100
+                  )}% kehadiran`
+                : "0% kehadiran"}
             </p>
           </CardContent>
         </Card>
@@ -109,7 +127,9 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.waitingList}</div>
-            <p className="text-xs text-muted-foreground">Menunggu kuota kosong</p>
+            <p className="text-xs text-muted-foreground">
+              Menunggu kuota kosong
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -118,8 +138,12 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{stats.cancelled}</div>
-            <p className="text-xs text-muted-foreground">Oleh sistem atau user</p>
+            <div className="text-2xl font-bold text-destructive">
+              {stats.cancelled}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Oleh sistem atau user
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -132,7 +156,9 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
         <CardContent>
           {registrations.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Belum ada peserta yang mendaftar.</p>
+              <p className="text-muted-foreground">
+                Belum ada peserta yang mendaftar.
+              </p>
             </div>
           ) : (
             <div className="border rounded-lg overflow-hidden">
@@ -165,12 +191,18 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
                         {formatDate(reg.registeredAt)}
                       </TableCell>
                       <TableCell>
-                        {reg.status === 'REGISTERED' ? (
-                          <Badge variant="outline" className="border-green-600/30 text-green-700 bg-green-50/50">
+                        {reg.status === "REGISTERED" ? (
+                          <Badge
+                            variant="outline"
+                            className="border-green-600/30 text-green-700 bg-green-50/50"
+                          >
                             Registered
                           </Badge>
-                        ) : reg.status === 'WAITING_LIST' ? (
-                          <Badge variant="outline" className="border-amber-600/30 text-amber-700 bg-amber-50/50">
+                        ) : reg.status === "WAITING_LIST" ? (
+                          <Badge
+                            variant="outline"
+                            className="border-amber-600/30 text-amber-700 bg-amber-50/50"
+                          >
                             Waiting List
                           </Badge>
                         ) : (
@@ -187,15 +219,19 @@ export default async function ParticipantsPage({ params }: ParticipantsPageProps
                             </Badge>
                             {reg.attendedAt && (
                               <span className="text-[10px] text-muted-foreground">
-                                {new Intl.DateTimeFormat('id-ID', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                }).format(new Date(reg.attendedAt))} WIB
+                                {new Intl.DateTimeFormat("id-ID", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }).format(new Date(reg.attendedAt))}{" "}
+                                WIB
                               </span>
                             )}
                           </div>
                         ) : (
-                          <Badge variant="outline" className="text-muted-foreground">
+                          <Badge
+                            variant="outline"
+                            className="text-muted-foreground"
+                          >
                             Belum Check-in
                           </Badge>
                         )}

@@ -60,12 +60,22 @@ import {
 const formSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi").max(100, "Maksimal 100 karakter"),
   description: z.string().optional(),
-  color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Format warna tidak valid (contoh: #ff0000)").optional(),
+  color: z
+    .string()
+    .regex(
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+      "Format warna tidak valid (contoh: #ff0000)"
+    )
+    .optional(),
 });
 
 type EventTypeFormValues = z.infer<typeof formSchema>;
 
-export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[] }) {
+export default function EventTypesPage({
+  eventTypes,
+}: {
+  eventTypes: TEventType[];
+}) {
   const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingType, setEditingType] = useState<TEventType | null>(null);
@@ -85,7 +95,8 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
     try {
       const formData = new FormData();
       formData.append("name", values.name);
-      if (values.description) formData.append("description", values.description);
+      if (values.description)
+        formData.append("description", values.description);
       if (values.color) formData.append("color", values.color);
 
       if (editingType) {
@@ -136,16 +147,21 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Event Types</h1>
-          <p className="text-muted-foreground">Kelola kategori atau tipe event</p>
+          <p className="text-muted-foreground">
+            Kelola kategori atau tipe event
+          </p>
         </div>
 
-        <Dialog open={isCreateOpen} onOpenChange={(open) => {
-          setIsCreateOpen(open);
-          if (!open) {
-            setEditingType(null);
-            form.reset({ name: "", description: "", color: "#6366f1" });
-          }
-        }}>
+        <Dialog
+          open={isCreateOpen}
+          onOpenChange={(open) => {
+            setIsCreateOpen(open);
+            if (!open) {
+              setEditingType(null);
+              form.reset({ name: "", description: "", color: "#6366f1" });
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="gap-2 bg-gradient-to-r from-green-600 to-yellow-500 hover:from-green-700 hover:to-yellow-600 border-0">
               <Plus size={16} />
@@ -154,13 +170,18 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingType ? "Edit Tipe Event" : "Tambah Tipe Event"}</DialogTitle>
+              <DialogTitle>
+                {editingType ? "Edit Tipe Event" : "Tambah Tipe Event"}
+              </DialogTitle>
               <DialogDescription>
                 Tipe event digunakan untuk mengelompokkan event yang kamu buat.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4 py-4"
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -168,7 +189,10 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
                     <FormItem>
                       <FormLabel>Nama</FormLabel>
                       <FormControl>
-                        <Input placeholder="Contoh: Workshop, Meetup..." {...field} />
+                        <Input
+                          placeholder="Contoh: Workshop, Meetup..."
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -199,7 +223,11 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
                       <FormLabel>Warna Badge</FormLabel>
                       <div className="flex gap-2 items-center">
                         <FormControl>
-                          <Input type="color" className="p-1 w-12 h-10" {...field} />
+                          <Input
+                            type="color"
+                            className="p-1 w-12 h-10"
+                            {...field}
+                          />
                         </FormControl>
                         <Input
                           placeholder="#000000"
@@ -208,7 +236,8 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
                         />
                       </div>
                       <FormDescription>
-                        Warna ini akan digunakan pada badge kategori di halaman publik.
+                        Warna ini akan digunakan pada badge kategori di halaman
+                        publik.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -216,7 +245,9 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={loading} className="w-full">
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {loading && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     {editingType ? "Simpan Perubahan" : "Buat Tipe"}
                   </Button>
                 </DialogFooter>
@@ -239,7 +270,10 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
           <TableBody>
             {eventTypes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="text-center py-10 text-muted-foreground"
+                >
                   Belum ada tipe event yang dibuat.
                 </TableCell>
               </TableRow>
@@ -272,16 +306,24 @@ export default function EventTypesPage({ eventTypes }: { eventTypes: TEventType[
 
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                          >
                             <Trash2 size={16} />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Hapus Tipe Event?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Hapus Tipe Event?
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Apakah kamu yakin ingin menghapus tipe event <strong>"{type.name}"</strong>?
-                              Aksi ini tidak dapat dibatalkan dan mungkin mempengaruhi event yang menggunakan tipe ini.
+                              Apakah kamu yakin ingin menghapus tipe event{" "}
+                              <strong>&ldquo;{type.name}&rdquo;</strong>? Aksi ini tidak
+                              dapat dibatalkan dan mungkin mempengaruhi event
+                              yang menggunakan tipe ini.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

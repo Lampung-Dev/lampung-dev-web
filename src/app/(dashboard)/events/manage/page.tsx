@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Pencil, Users } from "lucide-react";
 
 import { auth } from "@/lib/next-auth";
 import { getUserByEmailService } from "@/services/user";
-import { getAllEventsService, getEventRegisteredCountService } from "@/services/event";
+import {
+  getAllEventsService,
+  getEventRegisteredCountService,
+} from "@/services/event";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,12 +23,12 @@ import { DeleteEventButton } from "./_components/delete-event-button";
 export default async function ManageEventsPage() {
   const session = await auth();
   if (!session?.user?.email) {
-    redirect('/login');
+    redirect("/login");
   }
 
   const user = await getUserByEmailService(session.user.email);
-  if (!user || user.role !== 'ADMIN') {
-    redirect('/dashboard');
+  if (!user || user.role !== "ADMIN") {
+    redirect("/dashboard");
   }
 
   const { events } = await getAllEventsService({ limit: 50 });
@@ -39,10 +42,10 @@ export default async function ManageEventsPage() {
   );
 
   const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+    new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     }).format(new Date(date));
 
   return (
@@ -98,7 +101,9 @@ export default async function ManageEventsPage() {
                     <TableCell>
                       {event.eventType ? (
                         <Badge
-                          style={{ backgroundColor: event.eventType.color || '#6366f1' }}
+                          style={{
+                            backgroundColor: event.eventType.color || "#6366f1",
+                          }}
                           className="text-white border-0"
                         >
                           {event.eventType.name}
@@ -111,13 +116,12 @@ export default async function ManageEventsPage() {
                     <TableCell>
                       {event.maxCapacity
                         ? `${event.registeredCount}/${event.maxCapacity}`
-                        : event.registeredCount
-                      }
+                        : event.registeredCount}
                     </TableCell>
                     <TableCell>
                       {isPast ? (
                         <Badge variant="secondary">Selesai</Badge>
-                      ) : event.registrationStatus === 'CLOSED' ? (
+                      ) : event.registrationStatus === "CLOSED" ? (
                         <Badge variant="destructive">Ditutup</Badge>
                       ) : isFull ? (
                         <Badge variant="outline">Penuh</Badge>
@@ -128,7 +132,11 @@ export default async function ManageEventsPage() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link href={`/events/manage/${event.id}/participants`}>
-                          <Button variant="ghost" size="icon" title="Lihat Peserta">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Lihat Peserta"
+                          >
                             <Users size={16} />
                           </Button>
                         </Link>

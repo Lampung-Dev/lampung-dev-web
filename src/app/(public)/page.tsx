@@ -1,6 +1,4 @@
-import { auth } from "@/lib/next-auth";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { SparklesText } from "@/components/sparkles-text";
 import LampungMap from "@/components/maps/lampung-maps";
