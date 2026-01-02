@@ -15,6 +15,14 @@ export const createUserService = async (values: TNewUser) => {
                 email: values.email,
                 picture: values.picture
             })
+            .onConflictDoUpdate({
+                target: userTable.email,
+                set: {
+                    name: values.name,
+                    picture: values.picture,
+                    updatedAt: new Date()
+                }
+            })
             .returning({
                 id: userTable.id,
                 email: userTable.email,
@@ -45,6 +53,7 @@ export const getUserByEmailService = async (email: string) => {
             role: user?.role,
             title: user?.title,
             status: user?.status,
+            hasPassword: !!user?.passwordHash,
             createdAt: user?.createdAt,
             updatedAt: user?.updatedAt,
             socialMediaLinks: socialMediaLinks.map((l) => ({ platform: l.platform, url: l.link }))
@@ -87,6 +96,21 @@ export const updateProfileDataService = async (data: { name: string; title: stri
     } catch (error) {
         console.log('ERROR update profile data:', error)
         throw new Error('Error updating profile information.');
+    }
+}
+
+export const updateUserPasswordService = async (email: string, passwordHash: string) => {
+    try {
+        return await db.update(userTable)
+            .set({ passwordHash })
+            .where(eq(userTable.email, email))
+            .returning({
+                id: userTable.id,
+                email: userTable.email,
+            });
+    } catch (error) {
+        console.log('ERROR update user password service:', error)
+        throw new Error('Error updating user password.');
     }
 }
 

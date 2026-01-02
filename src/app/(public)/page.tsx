@@ -1,16 +1,9 @@
-import { auth } from "@/lib/next-auth";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { SparklesText } from "@/components/sparkles-text";
 import LampungMap from "@/components/maps/lampung-maps";
 
 export default async function Home() {
-  const session = await auth();
-  if (session) {
-    redirect("/dashboard");
-  }
-
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="flex flex-col items-center max-w-3xl mx-auto text-center space-y-8">

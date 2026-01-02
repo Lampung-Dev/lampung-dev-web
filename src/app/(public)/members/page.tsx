@@ -5,8 +5,6 @@ import { Metadata } from "next";
 
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { auth } from "@/lib/next-auth";
-import { redirect } from "next/navigation";
 import { getAllUserPagination } from "@/actions/users/get-all-users";
 import AvatarClient from "../_components/avatar-client";
 import { CustomPagination } from "@/components/custom-pagination";
@@ -65,9 +63,8 @@ const MemberCard = ({ member, index }: { member: Member; index: number }) => {
                         <Link
                             href={socmed.url}
                             key={idx}
-                            className={`flex items-center justify-center bg-white rounded-full w-8 h-8 transition-all ${
-                                !socmed.url && "opacity-50 cursor-not-allowed"
-                            }`}
+                            className={`flex items-center justify-center bg-white rounded-full w-8 h-8 transition-all ${!socmed.url && "opacity-50 cursor-not-allowed"
+                                }`}
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -93,10 +90,6 @@ export default async function Members({
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    const session = await auth();
-    if (session) {
-        redirect("/dashboard");
-    }
     const paramPage = (await searchParams).page;
     const page = typeof paramPage === "string" ? parseInt(paramPage) : 1;
     const limit = 8;

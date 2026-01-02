@@ -1,17 +1,10 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
-
-import { auth } from "@/lib/next-auth";
 
 export const metadata: Metadata = {
   title: "About",
 };
 
 export default async function About() {
-  const session = await auth();
-  if (session) {
-    redirect("/dashboard");
-  }
   return (
     <div>
       <div className="p-8 prose bg-green-600/10 backdrop-blur-sm border-white border rounded-xl">
