@@ -15,6 +15,14 @@ export const createUserService = async (values: TNewUser) => {
                 email: values.email,
                 picture: values.picture
             })
+            .onConflictDoUpdate({
+                target: userTable.email,
+                set: {
+                    name: values.name,
+                    picture: values.picture,
+                    updatedAt: new Date()
+                }
+            })
             .returning({
                 id: userTable.id,
                 email: userTable.email,
