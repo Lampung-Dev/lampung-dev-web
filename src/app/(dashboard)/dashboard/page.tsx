@@ -6,6 +6,7 @@ import { getUserByEmailService } from "@/services/user";
 import { getUserRegistrationsService } from "@/services/event-registration";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getEventImageUrl } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -60,7 +61,7 @@ export default async function Page() {
               <Card key={id} className="overflow-hidden group hover:shadow-md transition-shadow">
                 <div className="relative aspect-square overflow-hidden">
                   <img
-                    src={event.imageUrl}
+                    src={getEventImageUrl(event.imageUrl)}
                     alt={event.title}
                     className="object-cover object-top w-full h-full transition-transform group-hover:scale-105"
                   />

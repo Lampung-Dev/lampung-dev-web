@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { auth } from "@/lib/next-auth";
+import { getEventImageUrl } from "@/lib/image-utils";
 import { getEventBySlugService, getEventRegisteredCountService } from "@/services/event";
 import { checkUserRegistrationService } from "@/services/event-registration";
 import { getUserByEmailService } from "@/services/user";
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: event.title,
       description: event.description.replace(/<[^>]*>/g, '').slice(0, 155),
-      images: [event.imageUrl],
+      images: [getEventImageUrl(event.imageUrl)],
     },
   };
 }
@@ -113,7 +114,7 @@ export default async function EventDetailPage({ params }: Props) {
         <div className="space-y-4">
           <div className="relative aspect-square rounded-2xl overflow-hidden shadow-xl">
             <Image
-              src={event.imageUrl}
+              src={getEventImageUrl(event.imageUrl)}
               alt={event.title}
               fill
               className="object-cover"
