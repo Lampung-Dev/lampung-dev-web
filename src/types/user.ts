@@ -15,6 +15,8 @@ export type UserProfile = {
     email: string;
     avatar: string;
     title: string;
+    role: string;
+    hasPassword?: boolean;
     socialMediaLinks: SocialMediaLink[]
 }
 

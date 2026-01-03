@@ -13,7 +13,13 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Link from "next/link";
 
-export default function MobileNavigation({ menuItems }: { menuItems: { title: string; href: string }[] }) {
+export default function MobileNavigation({
+    menuItems,
+    session
+}: {
+    menuItems: { title: string; href: string }[],
+    session: object | null
+}) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -33,9 +39,15 @@ export default function MobileNavigation({ menuItems }: { menuItems: { title: st
                         </SheetDescription>
                     </SheetHeader>
                     <div className="flex flex-col gap-4 mt-8">
-                        <Link href="/login">
-                            <Button className="bg-primary">Login</Button>
-                        </Link>
+                        {session ? (
+                            <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                                <Button className="bg-primary w-full">Dashboard</Button>
+                            </Link>
+                        ) : (
+                            <Link href="/login" onClick={() => setIsOpen(false)}>
+                                <Button className="bg-primary w-full">Login</Button>
+                            </Link>
+                        )}
                         {menuItems.map((item) => (
                             <Link
                                 key={item.title}

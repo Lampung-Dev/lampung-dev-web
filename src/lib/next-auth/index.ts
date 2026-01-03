@@ -45,6 +45,13 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         expiresAt: new Date(params.session.expires),
                         sessionId: existingSession?.id as string
                     })
+
+                    // Add role to session user
+                    if (params.session.user) {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
+                        params.session.user.role = existingUser.role;
+                    }
                 }
 
                 return params.session

@@ -20,6 +20,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         name: session.user?.name as string,
         email: session.user?.email as string,
         avatar: session.user?.image as string,
+        // @ts-expect-error - next-auth types don't include custom role field
+        role: session.user?.role as string,
     };
 
     return (
