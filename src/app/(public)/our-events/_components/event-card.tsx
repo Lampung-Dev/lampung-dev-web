@@ -6,6 +6,7 @@ import { Calendar, MapPin, Users, Instagram } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TEventWithType } from "@/services/event";
+import { getEventImageUrl } from "@/lib/image-utils";
 
 type EventCardProps = {
   event: TEventWithType;
@@ -42,7 +43,7 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
         {/* Square Image Container - Instagram Style */}
         <div className="relative aspect-square overflow-hidden">
           <Image
-            src={event.imageUrl}
+            src={getEventImageUrl(event.imageUrl)}
             alt={event.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"

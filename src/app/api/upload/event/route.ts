@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
       .webp({ quality: 80 })
       .toFile(filepath);
 
-    // Return the public URL
-    const publicUrl = `/uploads/events/${filename}`;
+    // Return the public URL via API route (Next.js can't serve files uploaded after build)
+    const publicUrl = `/api/uploads/events/${filename}`;
 
     return NextResponse.json({
       success: true,
