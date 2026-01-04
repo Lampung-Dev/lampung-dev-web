@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import SpaceCanvas from "@/components/space";
+import Footer from "@/components/footer";
 
 export default async function RootLayout({
   children,
@@ -26,7 +27,11 @@ export default async function RootLayout({
             </div>
           </div>
         </main>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );
 }
+
