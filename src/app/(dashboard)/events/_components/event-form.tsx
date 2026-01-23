@@ -29,7 +29,7 @@ import {
 import RichTextEditor from "@/components/rich-text-editor";
 import { TEventType } from "@/services/event-type";
 import { TEvent } from "@/services/event";
-import { createEventAction } from "@/actions/events/create-event-action";
+import { createEventBase } from "@/actions/events/create-event-action";
 
 const formSchema = z.object({
   title: z
@@ -45,6 +45,7 @@ const formSchema = z.object({
     .optional()
     .or(z.literal("")),
   maxCapacity: z.string().optional(),
+  entryFee: z.string().optional(),
   eventTypeId: z.string().min(1, "Tipe event wajib diisi"),
   registrationStatus: z.enum(["OPEN", "CLOSED"]),
   instagramUrl: z
@@ -80,6 +81,7 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
       location: initialData?.location || "",
       locationMapUrl: initialData?.locationMapUrl || "",
       maxCapacity: initialData?.maxCapacity?.toString() || "",
+      entryFee: initialData?.entryFee?.toString() || "",
       eventTypeId: initialData?.eventTypeId || "",
       registrationStatus: initialData?.registrationStatus || "OPEN",
       instagramUrl: initialData?.instagramUrl || "",
@@ -133,6 +135,8 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
           formData.append("locationMapUrl", values.locationMapUrl);
         if (values.maxCapacity)
           formData.append("maxCapacity", values.maxCapacity);
+        if (values.entryFee)
+          formData.append("entryFee", values.entryFee);
         formData.append("eventTypeId", values.eventTypeId);
         formData.append("registrationStatus", values.registrationStatus);
         if (values.instagramUrl)
@@ -154,13 +158,15 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
           formData.append("locationMapUrl", values.locationMapUrl);
         if (values.maxCapacity)
           formData.append("maxCapacity", values.maxCapacity);
+        if (values.entryFee)
+          formData.append("entryFee", values.entryFee);
         formData.append("eventTypeId", values.eventTypeId);
         formData.append("registrationStatus", values.registrationStatus);
         if (values.instagramUrl)
           formData.append("instagramUrl", values.instagramUrl);
         if (imageUrl) formData.append("imageUrl", imageUrl);
 
-        await createEventAction(formData);
+        await createEventBase(formData);
         toast.success("Event berhasil dibuat");
       }
 
@@ -308,6 +314,27 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="entryFee"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Biaya Pendaftaran (Opsional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Kosongkan jika gratis"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Biaya dalam Rupiah. Kosongkan jika event gratis.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

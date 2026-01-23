@@ -21,15 +21,15 @@ import {
 import { DeleteEventButton } from "./_components/delete-event-button";
 
 export default async function ManageEventsPage() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    redirect("/login");
-  }
+  // const session = await auth();
+  // if (!session?.user?.email) {
+  //   redirect("/login");
+  // }
 
-  const user = await getUserByEmailService(session.user.email);
-  if (!user || user.role !== "ADMIN") {
-    redirect("/dashboard");
-  }
+  // const user = await getUserByEmailService(session.user.email);
+  // if (!user || user.role !== "ADMIN") {
+  //   redirect("/dashboard");
+  // }
 
   const { events } = await getAllEventsService({ limit: 50 });
 

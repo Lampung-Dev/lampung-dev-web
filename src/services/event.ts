@@ -17,6 +17,7 @@ export type TNewEvent = {
   instagramUrl?: string;
   eventDate: Date;
   maxCapacity?: number;
+  entryFee?: number;
   registrationStatus?: "OPEN" | "CLOSED";
   createdBy?: string;
 };
@@ -70,6 +71,7 @@ export const createEventService = async (
         instagramUrl: values.instagramUrl,
         eventDate: values.eventDate,
         maxCapacity: values.maxCapacity,
+        entryFee: values.entryFee || 0,
         registrationStatus: values.registrationStatus || "OPEN",
         createdBy: values.createdBy,
       })

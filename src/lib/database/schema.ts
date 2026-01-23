@@ -1,9 +1,9 @@
-import { pgTable, text, timestamp, index, uuid, varchar, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, index, uuid, varchar, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { relations, type InferSelectModel } from "drizzle-orm";
 
 export const userTable = pgTable("user", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 50 }).notNull(),
+  name: varchar("name", { length: 250 }).notNull(),
   email: text("email").notNull().unique(),
   picture: text("picture").notNull(),
   title: varchar("title", { length: 100 }),
@@ -82,6 +82,7 @@ export const eventTable = pgTable("event", {
     mode: "date"
   }).notNull(),
   maxCapacity: integer("max_capacity"), // null = unlimited
+  entryFee: integer("entry_fee").default(0).notNull(), // in IDR, 0 = free
   registrationStatus: text("registration_status", { enum: ['OPEN', 'CLOSED'] })
     .default("OPEN")
     .notNull(),
@@ -125,6 +126,49 @@ export const eventRegistrationTable = pgTable("event_registration", {
   index("event_registration_event_idx").on(table.eventId),
   index("event_registration_user_idx").on(table.userId),
   index("event_registration_status_idx").on(table.status),
+]);
+
+export const eventTransactionTable = pgTable("event_transaction", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => eventTable.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  status: text("status", {
+    enum: ["PENDING", "SUCCESS", "FAILED", "EXPIRED"],
+  })
+    .default("PENDING")
+    .notNull(),
+  provider: text("provider").default("XENITH").notNull(),
+  externalId: text("external_id"),
+  referenceCode: text("reference_code").unique(),
+  isProcessed: boolean("is_processed").default(false).notNull(),
+  payinId: varchar("payin_id", { length: 100 }),
+  paymentMethod: text("payment_method"),
+  paymentChannel: text("payment_channel"),
+  paymentAmount: integer("payment_amount"),
+  feeAmount: integer("fee_amount"),
+  paidAt: timestamp("paid_at"),
+  rawCallback: jsonb("raw_callback"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "date",
+  })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "date",
+  })
+    .defaultNow()
+    .notNull(),
+}, (table) => [
+  index("event_trx_user_idx").on(table.userId),
+  index("event_trx_event_idx").on(table.eventId),
+  index("event_trx_status_idx").on(table.status),
 ]);
 
 // Define relations for the user table
@@ -171,6 +215,20 @@ export const eventRegistrationRelations = relations(eventRegistrationTable, ({ o
     references: [userTable.id],
   }),
 }));
+
+export const eventTransactionRelations = relations(
+  eventTransactionTable,
+  ({ one }) => ({
+    user: one(userTable, {
+      fields: [eventTransactionTable.userId],
+      references: [userTable.id],
+    }),
+    event: one(eventTable, {
+      fields: [eventTransactionTable.eventId],
+      references: [eventTable.id],
+    }),
+  })
+);
 
 export type TUser = InferSelectModel<typeof userTable>;
 export type TSession = InferSelectModel<typeof sessionTable>;

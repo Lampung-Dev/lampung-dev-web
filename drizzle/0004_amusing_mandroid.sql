@@ -1,0 +1,1 @@
+ALTER TABLE "event" ADD COLUMN "location_map_url" text;

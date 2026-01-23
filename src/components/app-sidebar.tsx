@@ -9,7 +9,8 @@ import {
   LayoutDashboard,
   Rocket,
   // Settings2,
-  SquareUserRound
+  SquareUserRound,
+  Banknote
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -139,6 +140,11 @@ const navigations: TNavigation[] = [
         url: "/jobs/post",
       },
     ],
+  },
+  {
+    title: "Transactions",
+    url: "/transactions",
+    icon: Banknote,
   },
 ];
 

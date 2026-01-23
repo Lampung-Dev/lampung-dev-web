@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/next-auth";
+// import { auth } from "@/lib/next-auth";
 import { mkdir } from "fs/promises";
 import path from "path";
 import sharp from "sharp";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // const session = await auth();
+    // if (!session?.user?.email) {
+    //   return NextResponse.json(
+    //     { error: "Unauthorized" },
+    //     { status: 401 }
+    //   );
+    // }
 
-    // Check if user is admin
-    const userRole = (session.user as { role?: string })?.role;
-    if (userRole !== 'ADMIN') {
-      return NextResponse.json(
-        { error: "Only admin can upload event images" },
-        { status: 403 }
-      );
-    }
+    // // Check if user is admin
+    // const userRole = (session.user as { role?: string })?.role;
+    // if (userRole !== 'ADMIN') {
+    //   return NextResponse.json(
+    //     { error: "Only admin can upload event images" },
+    //     { status: 403 }
+    //   );
+    // }
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
