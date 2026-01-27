@@ -8,25 +8,32 @@ export const metadata: Metadata = {
 import { auth } from "@/lib/next-auth";
 import { getTransactionsByUserService } from "@/services/transaction";
 import { getUserByEmailService } from "@/services/user";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { getEventByIdService } from "@/services/event";
+import { TransactionsTable } from "./_components/transactions-table";
 
 export default async function TransactionsPage() {
   // const session = await auth();
   // if (!session?.user?.email) {
   //   throw new Error("Unauthorized");
   // }
-  const user = await getUserByEmailService("Marisa33@yahoo.com");
+
+  const user = await getUserByEmailService("Sharon99@yahoo.com");
   if (!user) {
     throw new Error("User not found");
   }
+
   const transactions = await getTransactionsByUserService(user.id);
+
+  const transactionsWithEvent = await Promise.all(
+    transactions.map(async (tx) => {
+      const event = await getEventByIdService(tx.eventId || "");
+      return {
+        ...tx,
+        eventTitle: event?.title ?? tx.eventId,
+      };
+    }),
+  );
+
   return (
     <div className="container mx-auto py-2 px-4">
       <div className="container mx-auto py-6">
@@ -38,54 +45,7 @@ export default async function TransactionsPage() {
       {transactions.length === 0 ? (
         <p className="text-muted-foreground">No transactions found.</p>
       ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Payin ID</TableHead>
-                <TableHead>Event ID</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Payment Channel</TableHead>
-                <TableHead>Paid At</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="max-w-[160px] truncate">
-                    {transaction.payinId}
-                  </TableCell>
-                  <TableCell className="max-w-[160px] truncate">
-                    {transaction.eventId}
-                  </TableCell>
-                  <TableCell>
-                    Rp {transaction.amount.toLocaleString("id-ID")}
-                  </TableCell>
-
-                  <TableCell>{transaction.status}</TableCell>
-                  <TableCell>{transaction.paymentMethod}</TableCell>
-                  <TableCell>{transaction.paymentChannel}</TableCell>
-                  <TableCell>
-                    {transaction?.paidAt
-                      ? new Date(transaction.paidAt).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )
-                      : "UNPAID"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <TransactionsTable transactions={transactionsWithEvent} />
       )}
     </div>
   );

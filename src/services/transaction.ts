@@ -1,6 +1,6 @@
 import db from "@/lib/database";
 import { eventTransactionTable } from "@/lib/database/schema";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export async function createTransactionService({
   referenceCode,
@@ -39,6 +39,7 @@ export async function updateTransactionStatusService(
     payinId: string;
     paymentMethod: string;
     paymentChannel?: string;
+    paymentCode?: string;
   },
 ) {
   const [trx] = await db
@@ -47,6 +48,7 @@ export async function updateTransactionStatusService(
       payinId: payload.payinId,
       paymentMethod: payload.paymentMethod,
       paymentChannel: payload.paymentChannel,
+      paymentCode: payload.paymentCode,
       updatedAt: new Date(),
     })
     .where(eq(eventTransactionTable.referenceCode, referenceCode))
@@ -60,7 +62,8 @@ export async function getTransactionsByUserService(userId: string) {
     .select()
     .from(eventTransactionTable)
     .where(eq(eventTransactionTable.userId, userId))
-    .orderBy(eventTransactionTable.createdAt);
+    .orderBy(desc(eventTransactionTable.createdAt))
+    .limit(10);
   return transactions;
 }
 

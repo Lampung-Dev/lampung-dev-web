@@ -152,6 +152,7 @@ export const eventTransactionTable = pgTable("event_transaction", {
   paymentAmount: integer("payment_amount"),
   feeAmount: integer("fee_amount"),
   paidAt: timestamp("paid_at"),
+  paymentCode: text("payment_code"),
   rawCallback: jsonb("raw_callback"),
   createdAt: timestamp("created_at", {
     withTimezone: true,

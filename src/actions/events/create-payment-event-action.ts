@@ -78,6 +78,7 @@ async function createPaymentEventBase(formData: FormData) {
       payinId: payin.id,
       paymentMethod: payin.paymentMethod,
       paymentChannel: payin.paymentChannel,
+      paymentCode: payin.paymentCode,
     });
 
     return {
