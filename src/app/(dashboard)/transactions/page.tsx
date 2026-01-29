@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Transactions | Lampung Dev",
@@ -12,14 +13,14 @@ import { getEventByIdService } from "@/services/event";
 import { TransactionsTable } from "./_components/transactions-table";
 
 export default async function TransactionsPage() {
-  // const session = await auth();
-  // if (!session?.user?.email) {
-  //   throw new Error("Unauthorized");
-  // }
+  const session = await auth();
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
 
-  const user = await getUserByEmailService("Sharon99@yahoo.com");
+  const user = await getUserByEmailService(session.user.email);
   if (!user) {
-    throw new Error("User not found");
+    redirect("/login");
   }
 
   const transactions = await getTransactionsByUserService(user.id);

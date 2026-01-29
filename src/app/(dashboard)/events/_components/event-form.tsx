@@ -29,7 +29,7 @@ import {
 import RichTextEditor from "@/components/rich-text-editor";
 import { TEventType } from "@/services/event-type";
 import { TEvent } from "@/services/event";
-import { createEventBase } from "@/actions/events/create-event-action";
+import { createEventAction } from "@/actions/events/create-event-action";
 
 const formSchema = z.object({
   title: z
@@ -166,7 +166,7 @@ export function EventForm({ initialData, eventTypes }: EventFormProps) {
           formData.append("instagramUrl", values.instagramUrl);
         if (imageUrl) formData.append("imageUrl", imageUrl);
 
-        await createEventBase(formData);
+        await createEventAction(formData);
         toast.success("Event berhasil dibuat");
       }
 

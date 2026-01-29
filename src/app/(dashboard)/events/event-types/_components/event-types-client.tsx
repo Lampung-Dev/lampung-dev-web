@@ -52,7 +52,7 @@ import {
 
 import { TEventType } from "@/services/event-type";
 import {
-  createEventTypeBase,
+  createEventTypeAction,
   updateEventTypeAction,
   deleteEventTypeAction,
 } from "@/actions/events/event-type-actions";
@@ -104,7 +104,7 @@ export default function EventTypesPage({
         await updateEventTypeAction(formData);
         toast.success("Tipe event berhasil diperbarui");
       } else {
-        await createEventTypeBase(formData);
+        await createEventTypeAction(formData);
         toast.success("Tipe event berhasil dibuat");
       }
 

@@ -44,14 +44,11 @@ export default async function EventPaymentPage({ params }: Props) {
   const event = await getEventBySlugService(slug);
 
   const session = await auth();
-  const isLoggedIn = true;
+  const isLoggedIn = !!session?.user?.email;
 
   let user = null;
-  // if (isLoggedIn && session?.user?.email) {
-  //   user = await getUserByEmailService(session.user.email);
-  // }
-  if (isLoggedIn) {
-    user = await getUserByEmailService("Sharon99@yahoo.com");
+  if (isLoggedIn && session?.user?.email) {
+    user = await getUserByEmailService(session.user.email);
   }
 
   if (!event) {

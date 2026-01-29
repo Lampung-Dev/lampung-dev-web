@@ -14,12 +14,11 @@ import { getFee } from "@/lib/get-fee-utils";
 
 async function createPaymentEventBase(formData: FormData) {
   const session = await auth();
-  // if (!session?.user?.email) {
-  //   throw new Error("Harap login terlebih dahulu untuk join event");
-  // }
+  if (!session?.user?.email) {
+    throw new Error("Harap login terlebih dahulu untuk join event");
+  }
 
-  // const user = await getUserByEmailService(session.user.email);
-  const user = await getUserByEmailService("Sharon99@yahoo.com");
+  const user = await getUserByEmailService(session.user.email);
   
   const customerName = session?.user?.name || "Valued Customer";
 

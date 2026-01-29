@@ -59,15 +59,15 @@ export default async function EventDetailPage({ params }: Props) {
   }
 
   const session = await auth();
-  const isLoggedIn = true;
+  const isLoggedIn = !!session?.user?.email;
 
   // Get registration status and count
   const registeredCount = await getEventRegisteredCountService(event.id);
 
   let userRegistration = null;
   let user = null;
-  if (isLoggedIn) {
-    user = await getUserByEmailService("Sharon99@yahoo.com");
+  if (isLoggedIn && session?.user?.email) {
+    user = await getUserByEmailService(session.user.email);
     if (user) {
       userRegistration = await checkUserRegistrationService(event.id, user.id);
     }

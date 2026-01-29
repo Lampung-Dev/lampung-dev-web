@@ -11,16 +11,16 @@ import {
 } from "@/services/event-type";
 
 async function createEventTypeBase(formData: FormData) {
-  // const session = await auth();
-  // if (!session?.user?.email) {
-  //   throw new Error("Harap login terlebih dahulu");
-  // }
+  const session = await auth();
+  if (!session?.user?.email) {
+    throw new Error("Harap login terlebih dahulu");
+  }
 
   // Check if user is admin
-  // const userRole = (session.user as { role?: string })?.role;
-  // if (userRole !== 'ADMIN') {
-  //   throw new Error("Hanya admin yang dapat membuat tipe event");
-  // }
+  const userRole = (session.user as { role?: string })?.role;
+  if (userRole !== 'ADMIN') {
+    throw new Error("Hanya admin yang dapat membuat tipe event");
+  }
 
   try {
     const name = formData.get("name") as string;
@@ -46,7 +46,10 @@ async function createEventTypeBase(formData: FormData) {
   }
 }
 
-export { createEventTypeBase };
+export const createEventTypeAction = createRateLimitedAction(createEventTypeBase, {
+  limit: 10,
+  window: 60000,
+});
 
 async function updateEventTypeBase(formData: FormData) {
   const session = await auth();

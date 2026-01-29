@@ -1,21 +1,21 @@
 "use server";
 
-// import { auth } from "@/lib/next-auth";
-// import { createRateLimitedAction } from "@/lib/rate-limiter";
+import { auth } from "@/lib/next-auth";
+import { createRateLimitedAction } from "@/lib/rate-limiter";
 import { createEventService, generateSlug, TNewEvent } from "@/services/event";
 import { createEventTypeService } from "@/services/event-type";
 
 async function createEventBase(formData: FormData) {
-  // const session = await auth();
-  // if (!session?.user?.email) {
-  //   throw new Error("Harap login terlebih dahulu");
-  // }
+  const session = await auth();
+  if (!session?.user?.email) {
+    throw new Error("Harap login terlebih dahulu");
+  }
 
-  // // Check if user is admin
-  // const userRole = (session.user as { role?: string })?.role;
-  // if (userRole !== "ADMIN") {
-  //   throw new Error("Hanya admin yang dapat membuat event");
-  // }
+  // Check if user is admin
+  const userRole = (session.user as { role?: string })?.role;
+  if (userRole !== "ADMIN") {
+    throw new Error("Hanya admin yang dapat membuat event");
+  }
 
   try {
     const title = formData.get("title") as string;
@@ -98,4 +98,7 @@ async function createEventBase(formData: FormData) {
   }
 }
 
-export { createEventBase };
+export const createEventAction = createRateLimitedAction(createEventBase, {
+  limit: 10,
+  window: 60000, // 1 minute
+});

@@ -8,14 +8,14 @@ import { EventForm } from "../../_components/event-form";
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  // if (!session?.user?.email) {
-  //   redirect('/login');
-  // }
+  if (!session?.user?.email) {
+    redirect('/login');
+  }
 
-  // const user = await getUserByEmailService("farhannn58@gmail.com");
-  // if (!user || user.role !== 'ADMIN') {
-  //   redirect('/dashboard');
-  // }
+  const user = await getUserByEmailService(session.user.email);
+  if (!user || user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
 
   const [event, eventTypes] = await Promise.all([
     getEventByIdService(id),

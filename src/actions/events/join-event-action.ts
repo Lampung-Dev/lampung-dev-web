@@ -1,6 +1,6 @@
 "use server";
 
-// import { auth } from "@/lib/next-auth";
+import { auth } from "@/lib/next-auth";
 import { createRateLimitedAction } from "@/lib/rate-limiter";
 import {
   registerToEventService,
@@ -12,10 +12,10 @@ import { getUserByEmailService } from "@/services/user";
 import { sendEventRegistrationEmail } from "@/services/email";
 
 async function joinEventBase(formData: FormData) {
-  // const session = await auth();
-  // if (!session?.user?.email) {
-  //   throw new Error("Harap login terlebih dahulu untuk join event");
-  // }
+    const session = await auth();
+    if (!session?.user?.email) {
+      throw new Error("Harap login terlebih dahulu untuk join event");
+    }
 
   try {
     const eventId = formData.get("eventId") as string;
@@ -26,7 +26,7 @@ async function joinEventBase(formData: FormData) {
     }
 
     // Get user from database
-    const user = await getUserByEmailService("Sharon99@yahoo.com");
+    const user = await getUserByEmailService(session.user.email);
     if (!user) {
       throw new Error("User tidak ditemukan");
     }

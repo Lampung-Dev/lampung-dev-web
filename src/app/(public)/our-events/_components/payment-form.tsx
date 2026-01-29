@@ -5,7 +5,6 @@ import { getFee } from "@/lib/get-fee-utils";
 import { Button } from "@/components/ui/button";
 import { createPaymentEventAction } from "@/actions/events/create-payment-event-action";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 export default function PaymentForm({ event, user }: any) {
@@ -44,7 +43,6 @@ export default function PaymentForm({ event, user }: any) {
         "Pembayaran berhasil dibuat. Mengarahkan ke halaman pembayaran...",
       );
 
-      // ⬅️ INI YANG BENAR
       router.push(res.paymentUrl);
     } catch (err: any) {
       setIsLoading(false);

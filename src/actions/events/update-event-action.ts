@@ -6,16 +6,16 @@ import { updateEventService, getEventByIdService, TUpdateEvent } from "@/service
 import { promoteWaitingListParticipantsService } from "@/services/event-registration";
 
 async function updateEventBase(formData: FormData) {
-  // const session = await auth();
-  // if (!session?.user?.email) {
-  //   throw new Error("Harap login terlebih dahulu");
-  // }
+  const session = await auth();
+  if (!session?.user?.email) {
+    throw new Error("Harap login terlebih dahulu");
+  }
 
   // // Check if user is admin
-  // const userRole = (session.user as { role?: string })?.role;
-  // if (userRole !== 'ADMIN') {
-  //   throw new Error("Hanya admin yang dapat mengupdate event");
-  // }
+  const userRole = (session.user as { role?: string })?.role;
+  if (userRole !== 'ADMIN') {
+    throw new Error("Hanya admin yang dapat mengupdate event");
+  }
 
   try {
     const eventId = formData.get("eventId") as string;
