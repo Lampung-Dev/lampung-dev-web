@@ -5,6 +5,7 @@ import {
   getEventBySlugService,
   getEventRegisteredCountService,
 } from "@/services/event";
+import { checkUserRegistrationService } from "@/services/event-registration";
 import { getUserByEmailService } from "@/services/user";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -46,10 +47,17 @@ export default async function EventPaymentPage({ params }: Props) {
   const session = await auth();
   const isLoggedIn = !!session?.user?.email;
 
+  let userRegistration = null;
   let user = null;
   if (isLoggedIn && session?.user?.email) {
     user = await getUserByEmailService(session.user.email);
+    if (user) {
+      userRegistration = await checkUserRegistrationService(event!.id, user.id);
+    }
   }
+
+  const isRegistered =
+    userRegistration !== null && userRegistration.status !== "CANCELLED";
 
   if (!event) {
     return (
@@ -70,6 +78,28 @@ export default async function EventPaymentPage({ params }: Props) {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-2xl font-bold">Event Penuh</h1>
         <p className="mt-4">Maaf, kapasitas untuk event ini sudah penuh.</p>
+      </div>
+    );
+  }
+
+  if (isRegistered) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        {/* Back Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <Link
+            href={`/our-events/${event.slug}`}
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft size={18} />
+            Kembali ke Detail Event
+          </Link>
+        </div>
+        <h1 className="text-2xl font-bold">Sudah Terdaftar</h1>
+        <p className="mt-4">
+          Kamu sudah terdaftar untuk event ini. Silakan cek halaman transaksi
+          untuk melihat detail pembayaran.
+        </p>
       </div>
     );
   }
