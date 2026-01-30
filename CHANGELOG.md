@@ -1,3 +1,17 @@
+## [1.5.2] - 2025-07-20
+
+### What's Changed
+
+- Refactor: improve code formatting and structure in ProfilePicture component
+- Fixed [#32](https://github.com/Lampung-Dev/lampung-dev-web/issues/32)
+- Fixed [#33](https://github.com/Lampung-Dev/lampung-dev-web/issues/33)
+
+## [1.5.1] - 2025-06-21
+
+### What's Changed
+
+- add new github action for main
+
 ## [1.5.0] - 2025-06-21
 
 ### What's Changed

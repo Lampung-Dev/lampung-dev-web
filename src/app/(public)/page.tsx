@@ -2,6 +2,34 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SparklesText } from "@/components/sparkles-text";
 import LampungMap from "@/components/maps/lampung-maps";
+import { FaInstagram, FaDiscord, FaWhatsapp, FaTelegram } from "react-icons/fa";
+
+const socialLinks = [
+  {
+    name: "Instagram",
+    href: "https://www.instagram.com/lampungdevorg",
+    icon: FaInstagram,
+    hoverColor: "hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-pink-500 hover:to-purple-600",
+  },
+  {
+    name: "Discord",
+    href: "https://lampungdev.org/join-discord",
+    icon: FaDiscord,
+    hoverColor: "hover:bg-[#5865F2]",
+  },
+  {
+    name: "WhatsApp",
+    href: "https://chat.whatsapp.com/H6NSjCJGwQ09E5TKwW4qvp",
+    icon: FaWhatsapp,
+    hoverColor: "hover:bg-[#25D366]",
+  },
+  {
+    name: "Telegram",
+    href: "https://t.me/lampungdevorg",
+    icon: FaTelegram,
+    hoverColor: "hover:bg-[#0088cc]",
+  },
+];
 
 export default async function Home() {
   return (
@@ -38,6 +66,22 @@ export default async function Home() {
           >
             Meet Our Members
           </Link>
+        </div>
+
+        {/* Social Media Icons */}
+        <div className="flex items-center gap-4 mt-4">
+          {socialLinks.map((social) => (
+            <Link
+              key={social.name}
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-3 rounded-full bg-white/10 text-white transition-all duration-300 ${social.hoverColor} hover:scale-110 hover:shadow-lg`}
+              aria-label={social.name}
+            >
+              <social.icon className="w-6 h-6" />
+            </Link>
+          ))}
         </div>
       </div>
     </div>

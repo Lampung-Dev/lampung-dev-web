@@ -1,6 +1,6 @@
 {
   "name": "lampung-dev-web",
-  "version": "1.4.0",
+  "version": "1.5.2",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3050",
@@ -48,6 +48,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.69.0",
+    "react-icons": "^5.5.0",
     "react-image-crop": "^11.0.7",
     "server-only": "^0.0.1",
     "sharp": "^0.34.5",
