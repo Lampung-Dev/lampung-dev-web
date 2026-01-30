@@ -1,5 +1,9 @@
 import db from "@/lib/database";
-import { eventTransactionTable } from "@/lib/database/schema";
+import {
+  eventTransactionTable,
+  userTable,
+  eventTable,
+} from "@/lib/database/schema";
 import { desc, eq } from "drizzle-orm";
 
 export async function createTransactionService({
@@ -55,6 +59,34 @@ export async function updateTransactionStatusService(
     .returning();
 
   return trx;
+}
+
+export async function getAllTransactionsService(params: {
+  limit?: number;
+  offset?: number;
+}) {
+  const transactions = await db
+    .select({
+      id: eventTransactionTable.id,
+      payinId: eventTransactionTable.payinId,
+      amount: eventTransactionTable.amount,
+      status: eventTransactionTable.status,
+      paymentMethod: eventTransactionTable.paymentMethod,
+      paymentChannel: eventTransactionTable.paymentChannel,
+      paidAt: eventTransactionTable.paidAt,
+      eventTitle: eventTable.title,
+      eventId: eventTransactionTable.eventId,
+      paymentCode: eventTransactionTable.paymentCode,
+
+      userName: userTable.name,
+    })
+    .from(eventTransactionTable)
+    .leftJoin(userTable, eq(userTable.id, eventTransactionTable.userId))
+    .leftJoin(eventTable, eq(eventTable.id, eventTransactionTable.eventId))
+    .orderBy(desc(eventTransactionTable.createdAt))
+    .limit(params.limit || 20)
+    .offset(params.offset || 0);
+  return transactions;
 }
 
 export async function getTransactionsByUserService(userId: string) {

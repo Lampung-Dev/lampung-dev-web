@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 import { auth } from "@/lib/next-auth";
-import { getTransactionsByUserService } from "@/services/transaction";
+import { getAllTransactionsService, getTransactionsByUserService } from "@/services/transaction";
 import { getUserByEmailService } from "@/services/user";
 import { getEventByIdService } from "@/services/event";
 import { TransactionsTable } from "./_components/transactions-table";
@@ -23,7 +23,16 @@ export default async function TransactionsPage() {
     redirect("/login");
   }
 
-  const transactions = await getTransactionsByUserService(user.id);
+  let transactions;
+  let title;
+
+  if (user.role === "ADMIN") {
+    transactions = await getAllTransactionsService({ limit: 10, offset: 0 });
+    title = "Riwayat Transaksi User";
+  } else {
+    transactions = await getTransactionsByUserService(user.id);
+    title = "Riwayat Transaksi";
+  }
 
   const transactionsWithEvent = await Promise.all(
     transactions.map(async (tx) => {
@@ -38,7 +47,7 @@ export default async function TransactionsPage() {
   return (
     <div className="container mx-auto py-2 px-4">
       <div className="container mx-auto py-6">
-        <h1 className="text-2xl font-bold mb-4">My Transactions</h1>
+        <h1 className="text-2xl font-bold mb-4">{title}</h1>
         <p className="text-muted-foreground">
           Lihat riwayat transaksi event komunitas di Lampung Dev
         </p>
@@ -46,7 +55,7 @@ export default async function TransactionsPage() {
       {transactions.length === 0 ? (
         <p className="text-muted-foreground">No transactions found.</p>
       ) : (
-        <TransactionsTable transactions={transactionsWithEvent} />
+        <TransactionsTable transactions={transactionsWithEvent} role={user.role} />
       )}
     </div>
   );
