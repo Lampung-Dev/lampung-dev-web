@@ -8,16 +8,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CalendarPlus, Loader2, Clock } from "lucide-react";
 import { joinEventAction } from "@/actions/events/join-event-action";
 
 type JoinEventButtonProps = {
   eventId: string;
+  eventSlug: string;
+  entryFee: number;
   isRegistered: boolean;
-  registrationStatus: 'REGISTERED' | 'WAITING_LIST' | 'CANCELLED' | null;
-  eventStatus: 'OPEN' | 'CLOSED';
+  registrationStatus: "REGISTERED" | "WAITING_LIST" | "CANCELLED" | null;
+  eventStatus: "OPEN" | "CLOSED";
   isFull: boolean;
   isPast: boolean;
   isLoggedIn: boolean;
@@ -31,6 +33,8 @@ type JoinEventButtonProps = {
 export function JoinEventButton({
   eventId,
   isRegistered,
+  eventSlug,
+  entryFee,
   registrationStatus,
   eventStatus,
   isFull,
@@ -44,7 +48,7 @@ export function JoinEventButton({
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleJoin = async (action: 'join' | 'leave') => {
+  const handleJoin = async (action: "join" | "leave") => {
     if (!isLoggedIn) {
       toast.error("Silakan login terlebih dahulu");
       return;
@@ -59,11 +63,15 @@ export function JoinEventButton({
       const result = await joinEventAction(formData);
 
       if (result.success) {
-        if (action === 'join') {
-          if (result.status === 'WAITING_LIST') {
-            toast.info("Kamu masuk ke waiting list! Kamu akan otomatis menjadi peserta jika ada slot.");
+        if (action === "join") {
+          if (result.status === "WAITING_LIST") {
+            toast.info(
+              "Kamu masuk ke waiting list! Kamu akan otomatis menjadi peserta jika ada slot.",
+            );
           } else {
-            toast.success("Berhasil join event! Cek email untuk QR code ticket.");
+            toast.success(
+              "Berhasil join event! Cek email untuk QR code ticket.",
+            );
           }
         } else {
           toast.success("Berhasil keluar dari event");
@@ -71,7 +79,8 @@ export function JoinEventButton({
         router.refresh();
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal join event";
+      const message =
+        error instanceof Error ? error.message : "Gagal join event";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -84,10 +93,10 @@ export function JoinEventButton({
     const endDate = new Date(startDate.getTime() + 3 * 60 * 60 * 1000); // +3 hours
 
     const formatDate = (date: Date) =>
-      date.toISOString().replace(/-|:|\.\d{3}/g, '');
+      date.toISOString().replace(/-|:|\.\d{3}/g, "");
 
     const params = new URLSearchParams({
-      action: 'TEMPLATE',
+      action: "TEMPLATE",
       text: eventTitle,
       dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
       location: eventLocation,
@@ -102,7 +111,10 @@ export function JoinEventButton({
     const endDate = new Date(startDate.getTime() + 3 * 60 * 60 * 1000);
 
     const formatDate = (date: Date) =>
-      date.toISOString().replace(/-|:|\.\d{3}/g, '').slice(0, 15) + 'Z';
+      date
+        .toISOString()
+        .replace(/-|:|\.\d{3}/g, "")
+        .slice(0, 15) + "Z";
 
     return `BEGIN:VCALENDAR
 VERSION:2.0
@@ -119,11 +131,11 @@ END:VCALENDAR`;
 
   const downloadIcs = () => {
     const content = generateIcsContent();
-    const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+    const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${eventTitle.replace(/[^a-z0-9]/gi, '-')}.ics`;
+    a.download = `${eventTitle.replace(/[^a-z0-9]/gi, "-")}.ics`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -143,7 +155,7 @@ END:VCALENDAR`;
   if (!isLoggedIn) {
     return (
       <Button
-        onClick={() => router.push('/login')}
+        onClick={() => router.push("/login")}
         size="lg"
         className="w-full"
       >
@@ -152,8 +164,43 @@ END:VCALENDAR`;
     );
   }
 
-  // Already registered
-  if (isRegistered && registrationStatus !== 'CANCELLED') {
+  // Already registered paid event
+  if (isRegistered && entryFee > 0 && registrationStatus !== "CANCELLED") {
+    return (
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <Button variant="outline" size="lg" className="flex-1" disabled>
+            Sudah Terdaftar
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="lg">
+                <CalendarPlus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <a
+                  href={generateGoogleCalendarUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Google Calendar
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={downloadIcs}>
+                Apple Calendar / Outlook (.ics)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    );
+  }
+
+  // Already registered free event
+  if (isRegistered && registrationStatus !== "CANCELLED") {
     return (
       <div className="space-y-3">
         <div className="flex gap-2">
@@ -161,11 +208,13 @@ END:VCALENDAR`;
             variant="outline"
             size="lg"
             className="flex-1"
-            onClick={() => handleJoin('leave')}
+            onClick={() => handleJoin("leave")}
             disabled={loading}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {registrationStatus === 'WAITING_LIST' ? 'Keluar Waiting List' : 'Cancel Pendaftaran'}
+            {registrationStatus === "WAITING_LIST"
+              ? "Keluar Waiting List"
+              : "Cancel Pendaftaran"}
           </Button>
 
           <DropdownMenu>
@@ -191,10 +240,11 @@ END:VCALENDAR`;
           </DropdownMenu>
         </div>
 
-        {registrationStatus === 'WAITING_LIST' && (
+        {registrationStatus === "WAITING_LIST" && (
           <p className="text-sm text-yellow-600 bg-yellow-50 p-3 rounded-lg flex items-center gap-2 border border-yellow-200">
             <Clock size={14} />
-            Kamu di waiting list. Kamu akan otomatis menjadi peserta jika ada slot.
+            Kamu di waiting list. Kamu akan otomatis menjadi peserta jika ada
+            slot.
           </p>
         )}
       </div>
@@ -202,7 +252,7 @@ END:VCALENDAR`;
   }
 
   // Registration closed
-  if (eventStatus === 'CLOSED') {
+  if (eventStatus === "CLOSED") {
     return (
       <Button disabled variant="secondary" size="lg" className="w-full">
         Pendaftaran Ditutup
@@ -214,7 +264,7 @@ END:VCALENDAR`;
   if (isFull) {
     return (
       <Button
-        onClick={() => handleJoin('join')}
+        onClick={() => handleJoin("join")}
         variant="secondary"
         size="lg"
         className="w-full"
@@ -225,17 +275,32 @@ END:VCALENDAR`;
       </Button>
     );
   }
+  // Event is full and paid event
+  if (isFull && entryFee > 0) {
+    return (
+      <Button disabled variant="secondary" size="lg" className="w-full">
+        Event Penuh
+      </Button>
+    );
+  }
 
   // Can join
   return (
     <Button
-      onClick={() => handleJoin('join')}
+      onClick={() => {
+        if (entryFee > 0) {
+          router.push(`/our-events/${eventSlug}/payment`);
+          return;
+        }
+
+        handleJoin("join");
+      }}
       size="lg"
       className="w-full"
       disabled={loading}
     >
       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Join Event
+      {entryFee > 0 ? "Bayar & Join Event" : "Join Event"}
     </Button>
   );
 }

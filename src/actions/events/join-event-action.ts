@@ -12,10 +12,10 @@ import { getUserByEmailService } from "@/services/user";
 import { sendEventRegistrationEmail } from "@/services/email";
 
 async function joinEventBase(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    throw new Error("Harap login terlebih dahulu untuk join event");
-  }
+    const session = await auth();
+    if (!session?.user?.email) {
+      throw new Error("Harap login terlebih dahulu untuk join event");
+    }
 
   try {
     const eventId = formData.get("eventId") as string;

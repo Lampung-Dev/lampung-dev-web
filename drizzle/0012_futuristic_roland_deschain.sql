@@ -1,0 +1,1 @@
+ALTER TABLE "event_transaction" ADD COLUMN "payment_code" text;

@@ -11,7 +11,7 @@ async function updateEventBase(formData: FormData) {
     throw new Error("Harap login terlebih dahulu");
   }
 
-  // Check if user is admin
+  // // Check if user is admin
   const userRole = (session.user as { role?: string })?.role;
   if (userRole !== 'ADMIN') {
     throw new Error("Hanya admin yang dapat mengupdate event");
@@ -32,6 +32,7 @@ async function updateEventBase(formData: FormData) {
     const instagramUrl = formData.get("instagramUrl") as string | undefined;
     const eventDateStr = formData.get("eventDate") as string | undefined;
     const maxCapacityStr = formData.get("maxCapacity") as string | undefined;
+    const entryFeeStr = formData.get("entryFee") as string | undefined;
     const registrationStatus = formData.get("registrationStatus") as 'OPEN' | 'CLOSED' | undefined;
 
     if (!eventId) {
@@ -70,6 +71,10 @@ async function updateEventBase(formData: FormData) {
       }
     }
     if (registrationStatus !== undefined) updateData.registrationStatus = registrationStatus;
+    if (entryFeeStr !== undefined) {
+      const newEntryFee = entryFeeStr ? Number(entryFeeStr) : undefined;
+      updateData.entryFee = newEntryFee;
+    }
 
     const event = await updateEventService(eventId, updateData);
 

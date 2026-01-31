@@ -15,6 +15,9 @@ export default async function CreateEventPage() {
     redirect("/dashboard");
   }
 
+  if (!user) redirect("/login");
+  if (user.role !== "ADMIN") redirect("/dashboard");
+
   const eventTypes = await getAllEventTypesService();
 
   return (
