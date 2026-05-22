@@ -231,9 +231,36 @@ export const eventTransactionRelations = relations(
   })
 );
 
+// Sponsor table
+export const sponsorTable = pgTable("sponsor", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 200 }).notNull(),
+  logoUrl: text("logo_url").notNull(),
+  websiteUrl: text("website_url"),
+  category: text("category", {
+    enum: ['HIGH_PRIORITY', 'GOLD', 'SILVER', 'COMMUNITY_PARTNER']
+  }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  displayOrder: integer("display_order").default(0).notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "date"
+  }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "date"
+  }).defaultNow().notNull(),
+}, (table) => [
+  index("sponsor_category_idx").on(table.category),
+  index("sponsor_active_idx").on(table.isActive),
+  index("sponsor_order_idx").on(table.displayOrder),
+]);
+
 export type TUser = InferSelectModel<typeof userTable>;
 export type TSession = InferSelectModel<typeof sessionTable>;
 export type TSocialMedia = InferSelectModel<typeof socialMediaTable>;
 export type TEventType = InferSelectModel<typeof eventTypeTable>;
 export type TEvent = InferSelectModel<typeof eventTable>;
 export type TEventRegistration = InferSelectModel<typeof eventRegistrationTable>;
+export type TSponsor = InferSelectModel<typeof sponsorTable>;

@@ -10,7 +10,8 @@ import {
   Rocket,
   // Settings2,
   SquareUserRound,
-  Banknote
+  Banknote,
+  Heart
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -145,6 +146,18 @@ const navigations: TNavigation[] = [
     title: "Transactions",
     url: "/transactions",
     icon: Banknote,
+  },
+  {
+    title: "Sponsors",
+    url: "/sponsors",
+    icon: Heart,
+    items: [
+      {
+        title: "Manage Sponsors",
+        url: "/sponsors/manage",
+        adminOnly: true,
+      },
+    ],
   },
 ];
 

@@ -3,6 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { SparklesText } from "@/components/sparkles-text";
 import LampungMap from "@/components/maps/lampung-maps";
 import { FaInstagram, FaDiscord, FaWhatsapp, FaTelegram } from "react-icons/fa";
+import { getActiveSponsorsService } from "@/services/sponsor";
+import SponsorSection from "./_components/sponsor-section";
 
 const socialLinks = [
   {
@@ -32,8 +34,10 @@ const socialLinks = [
 ];
 
 export default async function Home() {
+  const sponsors = await getActiveSponsorsService();
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
       <div className="flex flex-col items-center max-w-3xl mx-auto text-center space-y-8">
         <LampungMap />
 
@@ -84,6 +88,9 @@ export default async function Home() {
           ))}
         </div>
       </div>
+
+      {/* Sponsor Section */}
+      <SponsorSection sponsors={sponsors} />
     </div>
   );
 }
