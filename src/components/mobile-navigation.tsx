@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -21,6 +22,7 @@ export default function MobileNavigation({
     session: object | null
 }) {
     const [isOpen, setIsOpen] = useState(false);
+    const pathname = usePathname();
 
     return (
         <div className="md:hidden">
@@ -48,16 +50,23 @@ export default function MobileNavigation({
                                 <Button className="bg-primary w-full">Login</Button>
                             </Link>
                         )}
-                        {menuItems.map((item) => (
-                            <Link
-                                key={item.title}
-                                href={item.href}
-                                onClick={() => setIsOpen(false)}
-                                className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-white/10"
-                            >
-                                {item.title}
-                            </Link>
-                        ))}
+                        {menuItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.title}
+                                    href={item.href}
+                                    onClick={() => setIsOpen(false)}
+                                    className={`transition-colors px-4 py-2 rounded-lg ${
+                                        isActive
+                                            ? "text-white bg-white/10 font-semibold"
+                                            : "text-gray-300 hover:text-white hover:bg-white/10"
+                                    }`}
+                                >
+                                    {item.title}
+                                </Link>
+                            );
+                        })}
                     </div>
                 </SheetContent>
             </Sheet>

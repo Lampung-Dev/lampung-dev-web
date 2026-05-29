@@ -196,7 +196,7 @@ export default async function SponsorsPage() {
             href="https://www.instagram.com/lampungdevorg"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300"
+            className="bg-gradient-to-r from-purple-600 via-red-500 to-yellow-500 hover:from-purple-700 hover:via-red-600 hover:to-yellow-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300"
           >
             Hubungi via Instagram
           </Link>

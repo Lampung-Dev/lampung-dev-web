@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CldUploadWidget } from "next-cloudinary";
+
 
 import { Button } from "@/components/ui/button";
 import {
@@ -109,6 +109,21 @@ export default function SponsorsClient({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<TSponsor | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+        form.setValue("logoUrl", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const form = useForm<SponsorFormValues>({
     // @ts-expect-error - zod v4 resolver type mismatch with react-hook-form
@@ -127,9 +142,30 @@ export default function SponsorsClient({
   const onSubmit = async (values: SponsorFormValues) => {
     setLoading(true);
     try {
+      let finalLogoUrl = values.logoUrl;
+
+      // Upload logo if changed/selected
+      if (logoFile) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", logoFile);
+
+        const uploadRes = await fetch("/api/upload/sponsor", {
+          method: "POST",
+          body: formDataUpload,
+        });
+
+        if (!uploadRes.ok) throw new Error("Gagal mengunggah logo");
+        const uploadData = await uploadRes.json();
+        finalLogoUrl = uploadData.url;
+      }
+
+      if (!finalLogoUrl) {
+        throw new Error("Logo sponsor wajib diunggah");
+      }
+
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("logoUrl", values.logoUrl);
+      formData.append("logoUrl", finalLogoUrl);
       if (values.websiteUrl) formData.append("websiteUrl", values.websiteUrl);
       formData.append("category", values.category);
       if (values.description) formData.append("description", values.description);
@@ -147,6 +183,8 @@ export default function SponsorsClient({
 
       setIsCreateOpen(false);
       setEditingSponsor(null);
+      setLogoFile(null);
+      setLogoPreview(null);
       form.reset();
       router.refresh();
     } catch (error) {
@@ -158,6 +196,8 @@ export default function SponsorsClient({
 
   const handleEdit = (sponsor: TSponsor) => {
     setEditingSponsor(sponsor);
+    setLogoPreview(sponsor.logoUrl);
+    setLogoFile(null);
     form.reset({
       name: sponsor.name,
       logoUrl: sponsor.logoUrl,
@@ -199,6 +239,8 @@ export default function SponsorsClient({
             setIsCreateOpen(open);
             if (!open) {
               setEditingSponsor(null);
+              setLogoFile(null);
+              setLogoPreview(null);
               form.reset({
                 name: "",
                 logoUrl: "",
@@ -259,10 +301,10 @@ export default function SponsorsClient({
                     <FormItem>
                       <FormLabel>Logo Sponsor</FormLabel>
                       <div className="space-y-3">
-                        {field.value && (
+                        {logoPreview && (
                           <div className="relative w-full h-24 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
                             <Image
-                              src={field.value}
+                              src={logoPreview}
                               alt="Logo preview"
                               width={200}
                               height={80}
@@ -270,34 +312,29 @@ export default function SponsorsClient({
                             />
                           </div>
                         )}
-                        <CldUploadWidget
-                          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "lampungdev"}
-                          options={{
-                            maxFiles: 1,
-                            resourceType: "image",
-                            folder: "sponsors",
-                          }}
-                          onSuccess={(result) => {
-                            if (typeof result.info === "object" && result.info !== null && "secure_url" in result.info) {
-                              field.onChange(result.info.secure_url);
-                            }
-                          }}
+                        <input
+                          id="logo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleLogoChange}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => document.getElementById("logo-upload")?.click()}
                         >
-                          {({ open }) => (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="w-full"
-                              onClick={() => open()}
-                            >
-                              {field.value ? "Ganti Logo" : "Upload Logo"}
-                            </Button>
-                          )}
-                        </CldUploadWidget>
+                          {logoPreview ? "Ganti Logo" : "Upload Logo"}
+                        </Button>
                         <FormControl>
                           <Input
                             placeholder="Atau masukkan URL logo langsung..."
                             {...field}
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                              setLogoPreview(e.target.value || null);
+                            }}
                           />
                         </FormControl>
                       </div>
