@@ -146,21 +146,8 @@ body {
 .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
 
 .starfield {
-  background-color: oklch(0.13 0.04 265);
-  background-image:
-    radial-gradient(ellipse at 20% 10%, oklch(0.78 0.18 75 / 0.08), transparent 50%),
-    radial-gradient(ellipse at 80% 90%, oklch(0.55 0.18 280 / 0.12), transparent 50%),
-    radial-gradient(1px 1px at 10% 20%, white, transparent),
-    radial-gradient(1px 1px at 25% 70%, white, transparent),
-    radial-gradient(1.5px 1.5px at 40% 40%, white, transparent),
-    radial-gradient(1px 1px at 55% 85%, white, transparent),
-    radial-gradient(1px 1px at 70% 15%, white, transparent),
-    radial-gradient(1.5px 1.5px at 85% 55%, white, transparent),
-    radial-gradient(1px 1px at 92% 30%, white, transparent),
-    radial-gradient(1px 1px at 15% 90%, white, transparent),
-    radial-gradient(1px 1px at 60% 50%, white, transparent),
-    radial-gradient(1px 1px at 35% 12%, white, transparent);
-  background-size: 100% 100%, 100% 100%, 250px 250px, 300px 300px, 200px 200px, 280px 280px, 220px 220px, 260px 260px, 320px 320px, 240px 240px, 290px 290px, 210px 210px;
+  /* Let layout's dynamic background canvas show through */
 }
+
 
 

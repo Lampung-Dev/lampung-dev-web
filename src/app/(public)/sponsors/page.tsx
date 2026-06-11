@@ -1,5 +1,4 @@
 import { getActiveSponsorsService } from "@/services/sponsor";
-import Starfield from "@/components/sponsors/Starfield";
 import SponsorHero from "@/components/sponsors/SponsorHero";
 import JetorbitSpotlight from "@/components/sponsors/JetorbitSpotlight";
 import ImpactStrip from "@/components/sponsors/ImpactStrip";
@@ -24,10 +23,7 @@ export default async function SponsorsPage() {
   );
 
   return (
-    <main className="starfield relative min-h-screen overflow-hidden text-foreground">
-      {/* Dynamic Starfield Background */}
-      <Starfield />
-
+    <div className="relative min-h-screen overflow-hidden text-foreground">
       {/* Ambient gold glow */}
       <div
         aria-hidden
@@ -49,6 +45,6 @@ export default async function SponsorsPage() {
 
       {/* Become a Sponsor CTA */}
       <BecomeSponsorCTA />
-    </main>
+    </div>
   );
 }
