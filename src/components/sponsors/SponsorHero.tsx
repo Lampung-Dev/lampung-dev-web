@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 
 export default function SponsorHero() {
   return (
-    <section className="relative mx-auto max-w-6xl px-6 pt-28 pb-12 text-center z-10">
+    <section className="relative mx-auto max-w-6xl px-6 pt-6 pb-12 text-center z-10">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
