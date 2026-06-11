@@ -87,3 +87,80 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Gold & Premium Visual Tokens for Sponsors Page */
+:root {
+  --gold: oklch(0.82 0.16 85);
+  --gold-soft: oklch(0.88 0.12 88);
+  --gold-deep: oklch(0.65 0.17 70);
+  --gradient-gold: linear-gradient(135deg, oklch(0.88 0.14 92), oklch(0.78 0.18 75), oklch(0.62 0.18 55));
+  --gradient-gold-soft: linear-gradient(135deg, oklch(0.88 0.12 88 / 0.18), oklch(0.65 0.17 70 / 0.05));
+  --shadow-premium: 0 30px 80px -20px oklch(0.78 0.18 75 / 0.35), 0 0 0 1px oklch(0.88 0.14 92 / 0.15);
+  --shadow-glow-gold: 0 0 60px oklch(0.82 0.16 85 / 0.35);
+}
+
+@layer utilities {
+  .text-gold {
+    color: var(--gold);
+  }
+  .bg-gradient-gold {
+    background-image: var(--gradient-gold);
+  }
+  .text-gradient-gold {
+    background-image: var(--gradient-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
+  }
+  .shadow-glow-gold {
+    box-shadow: var(--shadow-glow-gold);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+.animate-halo-pulse { animation: halo-pulse 4s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 12s linear infinite; }
+.animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
+
+.starfield {
+  background-color: oklch(0.13 0.04 265);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, oklch(0.78 0.18 75 / 0.08), transparent 50%),
+    radial-gradient(ellipse at 80% 90%, oklch(0.55 0.18 280 / 0.12), transparent 50%),
+    radial-gradient(1px 1px at 10% 20%, white, transparent),
+    radial-gradient(1px 1px at 25% 70%, white, transparent),
+    radial-gradient(1.5px 1.5px at 40% 40%, white, transparent),
+    radial-gradient(1px 1px at 55% 85%, white, transparent),
+    radial-gradient(1px 1px at 70% 15%, white, transparent),
+    radial-gradient(1.5px 1.5px at 85% 55%, white, transparent),
+    radial-gradient(1px 1px at 92% 30%, white, transparent),
+    radial-gradient(1px 1px at 15% 90%, white, transparent),
+    radial-gradient(1px 1px at 60% 50%, white, transparent),
+    radial-gradient(1px 1px at 35% 12%, white, transparent);
+  background-size: 100% 100%, 100% 100%, 250px 250px, 300px 300px, 200px 200px, 280px 280px, 220px 220px, 260px 260px, 320px 320px, 240px 240px, 290px 290px, 210px 210px;
+}
+
+

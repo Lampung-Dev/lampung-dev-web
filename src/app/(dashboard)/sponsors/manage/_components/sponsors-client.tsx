@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -126,8 +127,7 @@ export default function SponsorsClient({
   };
 
   const form = useForm<SponsorFormValues>({
-    // @ts-expect-error - zod v4 resolver type mismatch with react-hook-form
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       logoUrl: "",
@@ -277,7 +277,7 @@ export default function SponsorsClient({
               >
                 {/* Name */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
@@ -295,7 +295,7 @@ export default function SponsorsClient({
 
                 {/* Logo Upload */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="logoUrl"
                   render={({ field }) => (
                     <FormItem>
@@ -348,7 +348,7 @@ export default function SponsorsClient({
 
                 {/* Category */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="category"
                   render={({ field }) => (
                     <FormItem>
@@ -380,7 +380,7 @@ export default function SponsorsClient({
 
                 {/* Website URL */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="websiteUrl"
                   render={({ field }) => (
                     <FormItem>
@@ -401,7 +401,7 @@ export default function SponsorsClient({
 
                 {/* Description */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
@@ -420,7 +420,7 @@ export default function SponsorsClient({
 
                 {/* Display Order */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="displayOrder"
                   render={({ field }) => (
                     <FormItem>
@@ -443,7 +443,7 @@ export default function SponsorsClient({
 
                 {/* Is Active */}
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="isActive"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
