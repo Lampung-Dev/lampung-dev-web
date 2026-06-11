@@ -23,8 +23,7 @@ export default function JetorbitSpotlight({ logoUrl }: JetorbitSpotlightProps) {
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="group relative"
       >
@@ -38,7 +37,7 @@ export default function JetorbitSpotlight({ logoUrl }: JetorbitSpotlightProps) {
           }}
         />
 
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[oklch(0.16_0.03_265)]/90 shadow-premium backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-3xl border border-gold/15 bg-[#16140f]/90 shadow-premium backdrop-blur-xl">
           {/* Inner subtle gradient */}
           <div
             aria-hidden
@@ -51,13 +50,13 @@ export default function JetorbitSpotlight({ logoUrl }: JetorbitSpotlightProps) {
 
           <div className="relative grid gap-10 p-8 md:grid-cols-[1fr_1.2fr] md:gap-12 md:p-14 lg:p-16">
             {/* Logo panel */}
-            <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[oklch(0.2_0.05_265)] to-[oklch(0.12_0.04_265)] md:aspect-auto min-h-[260px]">
+            <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#060b1e] md:aspect-auto min-h-[260px]">
               <div
                 aria-hidden
                 className="absolute inset-0 animate-halo-pulse"
                 style={{
                   background:
-                    "radial-gradient(circle at center, oklch(0.78 0.18 75 / 0.2), transparent 60%)",
+                    "radial-gradient(circle at center, rgba(43, 136, 255, 0.2), transparent 60%)",
                 }}
               />
               <div
@@ -65,7 +64,7 @@ export default function JetorbitSpotlight({ logoUrl }: JetorbitSpotlightProps) {
                 className="absolute -inset-10 animate-spin-slow opacity-25"
                 style={{
                   background:
-                    "conic-gradient(from 0deg, transparent, oklch(0.82 0.16 85 / 0.3), transparent 30%)",
+                    "conic-gradient(from 0deg, transparent, rgba(43, 136, 255, 0.4), transparent 30%)",
                 }}
               />
 
@@ -76,29 +75,22 @@ export default function JetorbitSpotlight({ logoUrl }: JetorbitSpotlightProps) {
                       src={logoUrl}
                       alt="Jetorbit Logo"
                       fill
-                      className="object-contain filter brightness-0 invert drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]"
+                      className="object-contain filter brightness-0 invert drop-shadow-[0_0_20px_rgba(43, 136, 255, 0.3)]"
                       priority
                     />
                   </div>
                 ) : (
                   <>
                     <div
-                      className="text-5xl font-black tracking-tight sm:text-6xl md:text-7xl"
+                      className="text-4xl sm:text-5xl font-black tracking-wider text-[#2b88ff] drop-shadow-[0_0_20px_rgba(43,136,255,0.7)] font-sans"
                       style={{
-                        fontFamily: "'Courier New', ui-monospace, monospace",
-                        letterSpacing: "-0.04em",
-                        backgroundImage:
-                          "linear-gradient(180deg, oklch(0.88 0.14 92), oklch(0.65 0.17 70))",
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        color: "transparent",
-                        textShadow: "0 0 40px oklch(0.82 0.16 85 / 0.3)",
+                        letterSpacing: "0.08em",
                       }}
                     >
                       JETORBIT
                     </div>
-                    <div className="mt-3 text-[10px] font-medium uppercase tracking-[0.4em] text-white/40">
-                      VPS · Cloud · Hosting
+                    <div className="mt-3 text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">
+                      VPS · CLOUD · HOSTING
                     </div>
                   </>
                 )}
