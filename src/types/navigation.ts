@@ -4,7 +4,8 @@ export type TNavigation = {
     title: string;
     url: string;
     icon: LucideIcon;
-    isActive?: boolean
+    isActive?: boolean;
+    adminOnly?: boolean;
     items?: {
         title: string
         url: string

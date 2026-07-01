@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, Users, Instagram } from "lucide-react";
+import { Calendar, MapPin, Users, Instagram, Banknote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TEventWithType } from "@/services/event";
@@ -14,19 +14,23 @@ type EventCardProps = {
   isPast?: boolean;
 };
 
-export function EventCard({ event, registeredCount = 0, isPast = false }: EventCardProps) {
+export function EventCard({
+  event,
+  registeredCount = 0,
+  isPast = false,
+}: EventCardProps) {
   const eventDate = new Date(event.eventDate);
-  const dateFormatted = new Intl.DateTimeFormat('id-ID', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  const dateFormatted = new Intl.DateTimeFormat("id-ID", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   }).format(eventDate);
 
-  const timeFormatted = new Intl.DateTimeFormat('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Jakarta',
+  const timeFormatted = new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
   }).format(eventDate);
 
   const isFull = event.maxCapacity
@@ -57,7 +61,11 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.open(event.instagramUrl!, '_blank', 'noopener,noreferrer');
+                window.open(
+                  event.instagramUrl!,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
               }}
               className="absolute bottom-3 right-3 p-2 rounded-full bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors"
             >
@@ -70,10 +78,13 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
           {/* Badge Container */}
           <div className="flex flex-wrap gap-2">
             {isPast ? (
-              <Badge variant="secondary" className="bg-muted text-muted-foreground border-0">
+              <Badge
+                variant="secondary"
+                className="bg-muted text-muted-foreground border-0"
+              >
                 Selesai
               </Badge>
-            ) : event.registrationStatus === 'CLOSED' || isFull ? (
+            ) : event.registrationStatus === "CLOSED" || isFull ? (
               <Badge variant="destructive" className="border-0">
                 Pendaftaran Ditutup
               </Badge>
@@ -85,7 +96,7 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
 
             {event.eventType && (
               <Badge
-                style={{ backgroundColor: event.eventType.color || '#6366f1' }}
+                style={{ backgroundColor: event.eventType.color || "#6366f1" }}
                 className="text-white border-0"
               >
                 {event.eventType.name}
@@ -98,13 +109,15 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
           </h3>
 
           <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">
-            {event.description.replace(/<[^>]*>?/gm, '')}
+            {event.description.replace(/<[^>]*>?/gm, "")}
           </p>
 
           <div className="space-y-2 text-sm text-muted-foreground pt-1">
             <div className="flex items-center gap-2">
               <Calendar size={14} className="shrink-0 text-primary" />
-              <span>{dateFormatted} • {timeFormatted}</span>
+              <span>
+                {dateFormatted} • {timeFormatted}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin size={14} className="shrink-0 text-primary" />
@@ -113,6 +126,14 @@ export function EventCard({ event, registeredCount = 0, isPast = false }: EventC
             <div className="flex items-center gap-2">
               <Users size={14} className="shrink-0 text-primary" />
               <span>{capacityText}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Banknote size={14} className="shrink-0 text-primary" />
+              <span>
+                {(event.entryFee > 0 &&
+                  `Rp ${event.entryFee.toLocaleString("id-ID")}`) ||
+                  "Gratis"}
+              </span>
             </div>
           </div>
         </CardContent>

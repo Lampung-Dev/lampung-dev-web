@@ -2,14 +2,26 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, Users, Instagram, ArrowLeft, Clock, Pencil } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Instagram,
+  ArrowLeft,
+  Clock,
+  Pencil,
+  Banknote,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { auth } from "@/lib/next-auth";
 import { getEventImageUrl } from "@/lib/image-utils";
-import { getEventBySlugService, getEventRegisteredCountService } from "@/services/event";
+import {
+  getEventBySlugService,
+  getEventRegisteredCountService,
+} from "@/services/event";
 import { checkUserRegistrationService } from "@/services/event-registration";
 import { getUserByEmailService } from "@/services/user";
 import { JoinEventButton } from "../_components/join-event-button";
@@ -29,10 +41,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${event.title} | LampungDev`,
-    description: event.description.replace(/<[^>]*>/g, '').slice(0, 155),
+    description: event.description.replace(/<[^>]*>/g, "").slice(0, 155),
     openGraph: {
       title: event.title,
-      description: event.description.replace(/<[^>]*>/g, '').slice(0, 155),
+      description: event.description.replace(/<[^>]*>/g, "").slice(0, 155),
       images: [getEventImageUrl(event.imageUrl)],
     },
   };
@@ -61,24 +73,28 @@ export default async function EventDetailPage({ params }: Props) {
     }
   }
 
+  const eventEntryFee = event.entryFee ? event.entryFee : 0;
   const eventDate = new Date(event.eventDate);
   const now = new Date();
   const isPast = eventDate < now;
-  const isFull = event.maxCapacity ? registeredCount >= event.maxCapacity : false;
+  const isFull = event.maxCapacity
+    ? registeredCount >= event.maxCapacity
+    : false;
 
-  const isRegistered = userRegistration !== null && userRegistration.status !== 'CANCELLED';
+  const isRegistered =
+    userRegistration !== null && userRegistration.status !== "CANCELLED";
 
-  const dateFormatted = new Intl.DateTimeFormat('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+  const dateFormatted = new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   }).format(eventDate);
 
-  const timeFormatted = new Intl.DateTimeFormat('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Jakarta',
+  const timeFormatted = new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
   }).format(eventDate);
 
   const capacityText = event.maxCapacity
@@ -93,14 +109,21 @@ export default async function EventDetailPage({ params }: Props) {
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       {/* Back Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <Link href="/our-events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          href="/our-events"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft size={18} />
           Kembali ke Events
         </Link>
 
-        {user?.role === 'ADMIN' && (
+        {user?.role === "ADMIN" && (
           <Link href={`/events/${event.id}/edit`}>
-            <Button variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/10">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 border-primary/20 hover:bg-primary/10"
+            >
               <Pencil size={14} />
               Manage Event
             </Button>
@@ -142,10 +165,13 @@ export default async function EventDetailPage({ params }: Props) {
           {/* Badges */}
           <div className="flex flex-wrap gap-2">
             {isPast ? (
-              <Badge variant="secondary" className="bg-muted text-muted-foreground border-0">
+              <Badge
+                variant="secondary"
+                className="bg-muted text-muted-foreground border-0"
+              >
                 Selesai
               </Badge>
-            ) : event.registrationStatus === 'CLOSED' ? (
+            ) : event.registrationStatus === "CLOSED" ? (
               <Badge variant="destructive" className="border-0">
                 Pendaftaran Ditutup
               </Badge>
@@ -161,7 +187,7 @@ export default async function EventDetailPage({ params }: Props) {
 
             {event.eventType && (
               <Badge
-                style={{ backgroundColor: event.eventType.color || '#6366f1' }}
+                style={{ backgroundColor: event.eventType.color || "#6366f1" }}
                 className="text-white border-0"
               >
                 {event.eventType.name}
@@ -174,11 +200,15 @@ export default async function EventDetailPage({ params }: Props) {
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
               {event.title}
             </h1>
-            {slotsLeft !== null && !isPast && event.registrationStatus === 'OPEN' && (
-              <p className={`text-sm font-medium ${slotsLeft <= 5 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                {slotsLeft === 0 ? 'Kuota penuh!' : `Sisa ${slotsLeft} slot`}
-              </p>
-            )}
+            {slotsLeft !== null &&
+              !isPast &&
+              event.registrationStatus === "OPEN" && (
+                <p
+                  className={`text-sm font-medium ${slotsLeft <= 5 ? "text-orange-500" : "text-muted-foreground"}`}
+                >
+                  {slotsLeft === 0 ? "Kuota penuh!" : `Sisa ${slotsLeft} slot`}
+                </p>
+              )}
           </div>
 
           {/* Info Cards */}
@@ -196,7 +226,10 @@ export default async function EventDetailPage({ params }: Props) {
             </div>
 
             <a
-              href={event.locationMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+              href={
+                event.locationMapUrl ||
+                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-start gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors group/location"
@@ -234,10 +267,26 @@ export default async function EventDetailPage({ params }: Props) {
                 </div>
                 <div>
                   <p className="font-medium">Instagram</p>
-                  <p className="text-sm text-muted-foreground">Lihat post event</p>
+                  <p className="text-sm text-muted-foreground">
+                    Lihat post event
+                  </p>
                 </div>
               </a>
             )}
+
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Banknote className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Biaya Masuk</p>
+                <p className="text-sm text-muted-foreground">
+                  {(event.entryFee > 0 &&
+                    `Rp ${event.entryFee.toLocaleString("id-ID")}`) ||
+                    "Gratis"}
+                </p>
+              </div>
+            </div>
           </div>
 
           <Separator />
@@ -246,6 +295,8 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="space-y-3">
             <JoinEventButton
               eventId={event.id}
+              eventSlug={event.slug}
+              entryFee={eventEntryFee}
               isRegistered={isRegistered}
               registrationStatus={userRegistration?.status || null}
               eventStatus={event.registrationStatus}
@@ -255,7 +306,7 @@ export default async function EventDetailPage({ params }: Props) {
               eventTitle={event.title}
               eventDate={event.eventDate}
               eventLocation={event.location}
-              eventDescription={event.description.replace(/<[^>]*>/g, '')}
+              eventDescription={event.description.replace(/<[^>]*>/g, "")}
             />
 
             {/* QR Code Ticket - Show if registered */}

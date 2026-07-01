@@ -9,7 +9,9 @@ import {
   LayoutDashboard,
   Rocket,
   // Settings2,
-  SquareUserRound
+  SquareUserRound,
+  Banknote,
+  Heart
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -140,19 +142,44 @@ const navigations: TNavigation[] = [
       },
     ],
   },
+  {
+    title: "Transactions",
+    url: "/transactions",
+    icon: Banknote,
+  },
+  {
+    title: "Sponsors",
+    url: "/sponsors",
+    icon: Heart,
+    adminOnly: true,
+    items: [
+      {
+        title: "Manage Sponsors",
+        url: "/sponsors/manage",
+        adminOnly: true,
+      },
+    ],
+  },
 ];
 
 
 export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: User }) {
-  const filteredNavigations = navigations.map((nav) => ({
-    ...nav,
-    items: nav.items?.filter((item) => {
-      if (item.adminOnly) {
+  const filteredNavigations = navigations
+    .filter((nav) => {
+      if (nav.adminOnly) {
         return user?.role === "ADMIN";
       }
       return true;
-    }),
-  }));
+    })
+    .map((nav) => ({
+      ...nav,
+      items: nav.items?.filter((item) => {
+        if (item.adminOnly) {
+          return user?.role === "ADMIN";
+        }
+        return true;
+      }),
+    }));
 
   return (
     <Sidebar collapsible="icon" user={user} {...props}>

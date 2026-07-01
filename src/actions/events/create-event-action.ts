@@ -33,6 +33,7 @@ async function createEventBase(formData: FormData) {
     const instagramUrl = formData.get("instagramUrl") as string | undefined;
     const eventDateStr = formData.get("eventDate") as string;
     const maxCapacityStr = formData.get("maxCapacity") as string | undefined;
+    const entryFeeStr = formData.get("entryFee") as string | undefined;
     const registrationStatus = formData.get("registrationStatus") as
       | "OPEN"
       | "CLOSED"
@@ -71,7 +72,7 @@ async function createEventBase(formData: FormData) {
     slug = `${slug}-${timestamp}`;
 
     const maxCapacity = maxCapacityStr ? parseInt(maxCapacityStr) : undefined;
-
+    const entryFee = entryFeeStr ? Number(entryFeeStr) : undefined;
     const eventData: TNewEvent = {
       title,
       slug,
@@ -85,6 +86,7 @@ async function createEventBase(formData: FormData) {
       maxCapacity,
       registrationStatus: registrationStatus || "OPEN",
       createdBy,
+      entryFee: entryFee || 0,
     };
 
     const event = await createEventService(eventData);

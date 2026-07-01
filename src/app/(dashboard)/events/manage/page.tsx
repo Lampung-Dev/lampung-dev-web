@@ -80,6 +80,7 @@ export default async function ManageEventsPage() {
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Peserta</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Biaya Masuk</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -128,6 +129,11 @@ export default async function ManageEventsPage() {
                       ) : (
                         <Badge className="bg-green-600">Dibuka</Badge>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      {event.entryFee > 0
+                        ? `Rp ${event.entryFee.toLocaleString("id-ID")}`
+                        : "Gratis"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">

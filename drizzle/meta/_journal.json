@@ -29,6 +29,69 @@
       "when": 1767231027494,
       "tag": "0003_pale_quasimodo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767841799068,
+      "tag": "0004_amusing_mandroid",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1767842986197,
+      "tag": "0005_milky_korg",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768979926799,
+      "tag": "0006_daffy_raider",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1768980063737,
+      "tag": "0007_mushy_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1768980311799,
+      "tag": "0008_hot_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1768980383369,
+      "tag": "0009_many_the_santerians",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768981759700,
+      "tag": "0010_heavy_dagger",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1769003252444,
+      "tag": "0011_lush_catseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1769485546589,
+      "tag": "0012_futuristic_roland_deschain",
+      "breakpoints": true
     }
   ]
 }
