@@ -11,11 +11,24 @@ import {
 } from "@/components/ui/table";
 import { PaymentChannelBadge } from "./payment-channel-badge";
 
+type TransactionWithRelations = {
+  id: string;
+  payinId?: string | null;
+  userName?: string | null;
+  eventTitle?: string | null;
+  amount: number;
+  status: string;
+  paymentMethod?: string | null;
+  paymentChannel?: string | null;
+  paymentCode?: string | null;
+  paidAt?: Date | string | null;
+};
+
 export function TransactionsTable({
   transactions,
   role,
 }: {
-  transactions: any[];
+  transactions: TransactionWithRelations[];
   role?: string;
 }) {
   const router = useRouter();
@@ -48,7 +61,7 @@ export function TransactionsTable({
               <TableRow
                 key={transaction.id}
                 onClick={() => {
-                  if (isPayable) {
+                  if (isPayable && transaction.paymentCode) {
                     router.push(transaction.paymentCode);
                   }
                 }}
