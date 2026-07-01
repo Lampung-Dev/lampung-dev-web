@@ -87,3 +87,67 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Gold & Premium Visual Tokens for Sponsors Page */
+:root {
+  --gold: oklch(0.82 0.16 85);
+  --gold-soft: oklch(0.88 0.12 88);
+  --gold-deep: oklch(0.65 0.17 70);
+  --gradient-gold: linear-gradient(135deg, oklch(0.88 0.14 92), oklch(0.78 0.18 75), oklch(0.62 0.18 55));
+  --gradient-gold-soft: linear-gradient(135deg, oklch(0.88 0.12 88 / 0.18), oklch(0.65 0.17 70 / 0.05));
+  --shadow-premium: 0 30px 80px -20px oklch(0.78 0.18 75 / 0.35), 0 0 0 1px oklch(0.88 0.14 92 / 0.15);
+  --shadow-glow-gold: 0 0 60px oklch(0.82 0.16 85 / 0.35);
+}
+
+@layer utilities {
+  .text-gold {
+    color: var(--gold);
+  }
+  .bg-gradient-gold {
+    background-image: var(--gradient-gold);
+  }
+  .text-gradient-gold {
+    background-image: var(--gradient-gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
+  }
+  .shadow-glow-gold {
+    box-shadow: var(--shadow-glow-gold);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+.animate-halo-pulse { animation: halo-pulse 4s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 12s linear infinite; }
+.animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
+
+.starfield {
+  /* Let layout's dynamic background canvas show through */
+}
+
+
+

@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import ActiveLink from "./active-link";
+
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "./mobile-navigation";
 
@@ -11,6 +13,7 @@ const menuItems = [
   { title: "Events", href: "/our-events" },
   { title: "Members", href: "/members" },
   { title: "Contributors", href: "/contributors" },
+  { title: "Sponsors", href: "/sponsors" },
 ];
 
 export default async function Navbar() {
@@ -37,13 +40,14 @@ export default async function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {menuItems.map((item) => (
-              <Link
+              <ActiveLink
                 key={item.title}
                 href={item.href}
                 className="text-gray-300 hover:text-white transition-colors"
+                activeClassName="text-white font-semibold transition-colors"
               >
                 {item.title}
-              </Link>
+              </ActiveLink>
             ))}
 
             {session ? (
