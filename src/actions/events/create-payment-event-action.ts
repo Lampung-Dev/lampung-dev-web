@@ -84,10 +84,11 @@ async function createPaymentEventBase(formData: FormData) {
       success: true,
       paymentUrl: payin.paymentCode
     };
-  } catch (err: any) {
+  } catch (err) {
+    const error = err as Error;
     return {
       success: false,
-      message: err.message || "Payment gateway tidak dapat diakses",
+      message: error.message || "Payment gateway tidak dapat diakses",
     };
   }
 }

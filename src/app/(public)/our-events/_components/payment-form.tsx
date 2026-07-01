@@ -7,7 +7,15 @@ import { createPaymentEventAction } from "@/actions/events/create-payment-event-
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export default function PaymentForm({ event, user }: any) {
+import { TEvent } from "@/lib/database/schema";
+
+export default function PaymentForm({
+  event,
+  user,
+}: {
+  event: TEvent;
+  user: { name: string };
+}) {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentChannel, setPaymentChannel] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +52,10 @@ export default function PaymentForm({ event, user }: any) {
       );
 
       router.push(res.paymentUrl);
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       setIsLoading(false);
-      toast.error(err.message || "Terjadi kesalahan");
+      toast.error(error.message || "Terjadi kesalahan");
     }
   };
 

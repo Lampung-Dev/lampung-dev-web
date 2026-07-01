@@ -44,21 +44,6 @@ export default async function EventPaymentPage({ params }: Props) {
   const { slug } = await params;
   const event = await getEventBySlugService(slug);
 
-  const session = await auth();
-  const isLoggedIn = !!session?.user?.email;
-
-  let userRegistration = null;
-  let user = null;
-  if (isLoggedIn && session?.user?.email) {
-    user = await getUserByEmailService(session.user.email);
-    if (user) {
-      userRegistration = await checkUserRegistrationService(event!.id, user.id);
-    }
-  }
-
-  const isRegistered =
-    userRegistration !== null && userRegistration.status !== "CANCELLED";
-
   if (!event) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -67,6 +52,21 @@ export default async function EventPaymentPage({ params }: Props) {
       </div>
     );
   }
+
+  const session = await auth();
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
+  const user = await getUserByEmailService(session.user.email);
+  if (!user) {
+    redirect("/login");
+  }
+
+  const userRegistration = await checkUserRegistrationService(event.id, user.id);
+
+  const isRegistered =
+    userRegistration !== null && userRegistration.status !== "CANCELLED";
 
   const registeredCount = await getEventRegisteredCountService(event.id);
   const isFull = event.maxCapacity

@@ -264,3 +264,4 @@ export type TEventType = InferSelectModel<typeof eventTypeTable>;
 export type TEvent = InferSelectModel<typeof eventTable>;
 export type TEventRegistration = InferSelectModel<typeof eventRegistrationTable>;
 export type TSponsor = InferSelectModel<typeof sponsorTable>;
+export type TEventTransaction = InferSelectModel<typeof eventTransactionTable>;
