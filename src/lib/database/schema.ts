@@ -257,6 +257,52 @@ export const sponsorTable = pgTable("sponsor", {
   index("sponsor_order_idx").on(table.displayOrder),
 ]);
 
+// Job table
+export const jobTable = pgTable("job", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: varchar("title", { length: 200 }).notNull(),
+  company: varchar("company", { length: 200 }).notNull(),
+  companyInitial: varchar("company_initial", { length: 5 }).notNull(),
+  location: varchar("location", { length: 200 }).notNull(),
+  category: text("category", {
+    enum: [
+      "Web Development",
+      "Mobile Development",
+      "UI/UX Design",
+      "Data & AI",
+      "DevOps & Cloud",
+      "IT Support",
+    ],
+  }).notNull(),
+  type: text("type", {
+    enum: ["Penuh Waktu", "Paruh Waktu", "Magang", "Remote"],
+  }).notNull(),
+  salary: varchar("salary", { length: 100 }).notNull(),
+  experience: varchar("experience", { length: 100 }).notNull(),
+  education: varchar("education", { length: 100 }).notNull(),
+  skills: jsonb("skills").$type<string[]>().notNull().default([]),
+  isPremium: boolean("is_premium").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  description: text("description").notNull(),
+  responsibilities: jsonb("responsibilities").$type<string[]>().notNull().default([]),
+  requirements: jsonb("requirements").$type<string[]>().notNull().default([]),
+  benefits: jsonb("benefits").$type<string[]>().notNull().default([]),
+  createdBy: uuid("created_by").references(() => userTable.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  index("job_category_idx").on(table.category),
+  index("job_is_active_idx").on(table.isActive),
+  index("job_created_at_idx").on(table.createdAt),
+]);
+
+export const jobRelations = relations(jobTable, ({ one }) => ({
+  createdByUser: one(userTable, {
+    fields: [jobTable.createdBy],
+    references: [userTable.id],
+  }),
+}));
+
 export type TUser = InferSelectModel<typeof userTable>;
 export type TSession = InferSelectModel<typeof sessionTable>;
 export type TSocialMedia = InferSelectModel<typeof socialMediaTable>;
@@ -265,3 +311,4 @@ export type TEvent = InferSelectModel<typeof eventTable>;
 export type TEventRegistration = InferSelectModel<typeof eventRegistrationTable>;
 export type TSponsor = InferSelectModel<typeof sponsorTable>;
 export type TEventTransaction = InferSelectModel<typeof eventTransactionTable>;
+export type TJob = InferSelectModel<typeof jobTable>;

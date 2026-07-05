@@ -137,8 +137,14 @@ const navigations: TNavigation[] = [
         url: "/jobs/available",
       },
       {
-        title: "Post a Job",
+        title: "Manage Jobs",
         url: "/jobs/post",
+        adminOnly: true,
+      },
+      {
+        title: "Applications",
+        url: "/jobs/applications",
+        adminOnly: true,
       },
     ],
   },
