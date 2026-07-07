@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { type TJob } from "@/lib/database/schema";
-import { getRelativeTime } from "@/services/job";
+import { getRelativeTime } from "@/lib/date";
 import { CATEGORY_TABS, LOCATIONS } from "@/app/(public)/career/_data/jobs";
 
 type SerializedTJob = Omit<TJob, "createdAt" | "updatedAt"> & {

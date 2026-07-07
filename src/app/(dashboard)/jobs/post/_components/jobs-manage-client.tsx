@@ -76,7 +76,7 @@ type SerializedTJob = Omit<TJob, "createdAt" | "updatedAt"> & {
 import { createJobAction } from "@/actions/jobs/create-job-action";
 import { updateJobAction } from "@/actions/jobs/update-job-action";
 import { deleteJobAction } from "@/actions/jobs/delete-job-action";
-import { getRelativeTime } from "@/services/job";
+import { getRelativeTime } from "@/lib/date";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -204,10 +204,9 @@ function JobFormDialog({
         </DialogHeader>
 
         <Form {...form}>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-4 py-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField control={form.control as any} name="title" render={({ field }) => (
+              <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
                   <FormLabel>Judul Posisi</FormLabel>
                   <FormControl><Input placeholder="Frontend Developer (React)" {...field} /></FormControl>
@@ -215,7 +214,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="company" render={({ field }) => (
+              <FormField control={form.control} name="company" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nama Perusahaan</FormLabel>
                   <FormControl><Input placeholder="PT Contoh Indonesia" {...field} /></FormControl>
@@ -223,7 +222,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="location" render={({ field }) => (
+              <FormField control={form.control} name="location" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Lokasi</FormLabel>
                   <FormControl><Input placeholder="Bandar Lampung" {...field} /></FormControl>
@@ -231,7 +230,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="category" render={({ field }) => (
+              <FormField control={form.control} name="category" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Kategori</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
@@ -246,7 +245,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="type" render={({ field }) => (
+              <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipe Pekerjaan</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
@@ -261,7 +260,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="salary" render={({ field }) => (
+              <FormField control={form.control} name="salary" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rentang Gaji</FormLabel>
                   <FormControl><Input placeholder="Rp 5jt–8jt" {...field} /></FormControl>
@@ -269,7 +268,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="experience" render={({ field }) => (
+              <FormField control={form.control} name="experience" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Pengalaman</FormLabel>
                   <FormControl><Input placeholder="1–3 tahun" {...field} /></FormControl>
@@ -277,7 +276,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="education" render={({ field }) => (
+              <FormField control={form.control} name="education" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Pendidikan Minimal</FormLabel>
                   <FormControl><Input placeholder="D3/S1" {...field} /></FormControl>
@@ -285,7 +284,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="skills" render={({ field }) => (
+              <FormField control={form.control} name="skills" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
                   <FormLabel>Skills</FormLabel>
                   <FormControl><Input placeholder="React, TypeScript, Tailwind CSS" {...field} /></FormControl>
@@ -297,7 +296,7 @@ function JobFormDialog({
 
             {/* Toggles */}
             <div className="grid grid-cols-2 gap-3">
-              <FormField control={form.control as any} name="isPremium" render={({ field }) => (
+              <FormField control={form.control} name="isPremium" render={({ field }) => (
                 <FormItem className="flex items-center justify-between border rounded-lg p-3">
                   <div>
                     <FormLabel>Premium</FormLabel>
@@ -313,7 +312,7 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
-              <FormField control={form.control as any} name="isActive" render={({ field }) => (
+              <FormField control={form.control} name="isActive" render={({ field }) => (
                 <FormItem className="flex items-center justify-between border rounded-lg p-3">
                   <div>
                     <FormLabel>Status</FormLabel>
@@ -330,7 +329,7 @@ function JobFormDialog({
               )} />
             </div>
 
-            <FormField control={form.control as any} name="description" render={({ field }) => (
+            <FormField control={form.control} name="description" render={({ field }) => (
               <FormItem>
                 <FormLabel>Deskripsi Pekerjaan</FormLabel>
                 <FormControl>
@@ -340,7 +339,7 @@ function JobFormDialog({
               </FormItem>
             )} />
 
-            <FormField control={form.control as any} name="responsibilities" render={({ field }) => (
+            <FormField control={form.control} name="responsibilities" render={({ field }) => (
               <FormItem>
                 <FormLabel>Tanggung Jawab</FormLabel>
                 <FormControl>
@@ -351,7 +350,7 @@ function JobFormDialog({
               </FormItem>
             )} />
 
-            <FormField control={form.control as any} name="requirements" render={({ field }) => (
+            <FormField control={form.control} name="requirements" render={({ field }) => (
               <FormItem>
                 <FormLabel>Persyaratan</FormLabel>
                 <FormControl>
@@ -362,7 +361,7 @@ function JobFormDialog({
               </FormItem>
             )} />
 
-            <FormField control={form.control as any} name="benefits" render={({ field }) => (
+            <FormField control={form.control} name="benefits" render={({ field }) => (
               <FormItem>
                 <FormLabel>Benefit</FormLabel>
                 <FormControl>

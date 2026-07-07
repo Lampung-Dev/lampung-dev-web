@@ -400,7 +400,7 @@ export function CareerClient() {
                 className="border-primary/50 text-primary gap-1.5 cursor-pointer hover:bg-primary/10"
                 onClick={() => { setQuery(""); setInputValue(""); }}
               >
-                Pencarian: "{query}"
+                Pencarian: &quot;{query}&quot;
                 <X className="w-3 h-3" />
               </Badge>
             )}

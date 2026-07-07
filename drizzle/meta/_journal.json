@@ -92,6 +92,13 @@
       "when": 1769485546589,
       "tag": "0012_futuristic_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1783466126052,
+      "tag": "0013_goofy_carnage",
+      "breakpoints": true
     }
   ]
 }
