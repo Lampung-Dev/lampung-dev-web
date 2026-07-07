@@ -14,6 +14,7 @@ const menuItems = [
   { title: "Members", href: "/members" },
   { title: "Contributors", href: "/contributors" },
   { title: "Sponsors", href: "/sponsors" },
+  { title: "Career", href: "/career" },
 ];
 
 export default async function Navbar() {

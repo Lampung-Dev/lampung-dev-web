@@ -114,6 +114,36 @@ export const updateUserPasswordService = async (email: string, passwordHash: str
     }
 }
 
+export const updateUserRoleService = async (
+    userId: string,
+    role: 'ADMIN' | 'MODERATOR' | 'USER'
+) => {
+    try {
+        return await db.update(userTable)
+            .set({ role, updatedAt: new Date() })
+            .where(eq(userTable.id, userId))
+            .returning({ id: userTable.id, email: userTable.email, role: userTable.role });
+    } catch (error) {
+        console.error('ERROR updateUserRoleService:', error);
+        throw new Error('Error updating user role.');
+    }
+}
+
+export const updateUserStatusService = async (
+    userId: string,
+    status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+) => {
+    try {
+        return await db.update(userTable)
+            .set({ status, updatedAt: new Date() })
+            .where(eq(userTable.id, userId))
+            .returning({ id: userTable.id, email: userTable.email, status: userTable.status });
+    } catch (error) {
+        console.error('ERROR updateUserStatusService:', error);
+        throw new Error('Error updating user status.');
+    }
+}
+
 export const getAllUsersService = async ({
     page = 1,
     limit = 10,
