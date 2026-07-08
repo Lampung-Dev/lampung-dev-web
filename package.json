@@ -3,7 +3,7 @@
   "version": "1.5.2",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 3050",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start -p 3050",
     "lint": "next lint",

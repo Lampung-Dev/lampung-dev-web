@@ -3,7 +3,7 @@
 import { auth } from "@/lib/next-auth";
 import { getUserByEmailService } from "@/services/user";
 import { updateCompanyProfileService } from "@/services/company";
-import { updateApplicationStatusService } from "@/services/job-application";
+import { updateApplicationStatusService, getApplicationByIdService } from "@/services/job-application";
 import { revalidatePath } from "next/cache";
 import * as z from "zod";
 
@@ -73,6 +73,18 @@ export const updateApplicationStatusAction = async (applicationId: string, statu
     const user = await getUserByEmailService(session.user.email);
     if (!user || (user.role !== "ADMIN" && user.role !== "MITRA")) {
       return { success: false, error: "Unauthorized" };
+    }
+
+    // Verify application ownership/access rights
+    const app = await getApplicationByIdService(applicationId);
+    if (!app) {
+      return { success: false, error: "Lamaran tidak ditemukan." };
+    }
+
+    if (user.role === "MITRA") {
+      if (!user.companyId || app.job.companyId !== user.companyId) {
+        return { success: false, error: "Akses ditolak. Lamaran ini bukan milik perusahaan Anda." };
+      }
     }
 
     await updateApplicationStatusService(applicationId, status);

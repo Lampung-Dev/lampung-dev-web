@@ -92,3 +92,18 @@ export const getApplicationsByUserIdService = async (userId: string) => {
     throw new Error("Gagal mengambil data lamaran.");
   }
 };
+
+export const getApplicationByIdService = async (id: string) => {
+  try {
+    const app = await db.query.jobApplicationTable.findFirst({
+      where: eq(jobApplicationTable.id, id),
+      with: {
+        job: true,
+      },
+    });
+    return app ?? null;
+  } catch (error) {
+    console.error("ERROR getApplicationByIdService:", error);
+    throw new Error("Gagal mengambil data lamaran.");
+  }
+};
