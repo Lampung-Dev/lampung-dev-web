@@ -1,5 +1,22 @@
-import { pgTable, text, timestamp, index, uuid, varchar, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, index, uuid, varchar, integer, boolean, jsonb, doublePrecision } from "drizzle-orm/pg-core";
 import { relations, type InferSelectModel } from "drizzle-orm";
+
+export const companyTable = pgTable("company", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 200 }).notNull(),
+  slug: varchar("slug", { length: 250 }).notNull().unique(),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  website: text("website"),
+  address: text("address"),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  mapsUrl: text("maps_url"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  index("company_slug_idx").on(table.slug),
+]);
 
 export const userTable = pgTable("user", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,12 +25,17 @@ export const userTable = pgTable("user", {
   picture: text("picture").notNull(),
   title: varchar("title", { length: 100 }),
   passwordHash: text("password_hash"),
-  role: text("role", { enum: ['ADMIN', 'MODERATOR', 'USER'] })
+  role: text("role", { enum: ['ADMIN', 'MODERATOR', 'USER', 'MITRA'] })
     .default("USER")
     .notNull(),
   status: text("status", { enum: ['ACTIVE', 'INACTIVE', 'BANNED'] })
     .default("ACTIVE")
     .notNull(),
+  companyId: uuid("company_id").references(() => companyTable.id, { onDelete: "set null" }),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  locationName: text("location_name"),
+  employmentStatus: text("employment_status"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
     mode: "date"
@@ -25,6 +47,7 @@ export const userTable = pgTable("user", {
 }, (table) => [
   index('user_email_idx').on(table.email),
   index('user_status_idx').on(table.status),
+  index('user_company_idx').on(table.companyId),
 ]);
 
 export const sessionTable = pgTable("session", {
@@ -173,10 +196,15 @@ export const eventTransactionTable = pgTable("event_transaction", {
 ]);
 
 // Define relations for the user table
-export const userRelations = relations(userTable, ({ many }) => ({
+export const userRelations = relations(userTable, ({ one, many }) => ({
   socialMedia: many(socialMediaTable),
   eventsCreated: many(eventTable),
   eventRegistrations: many(eventRegistrationTable),
+  company: one(companyTable, {
+    fields: [userTable.companyId],
+    references: [companyTable.id],
+  }),
+  jobApplications: many(jobApplicationTable),
 }));
 
 // Define relations for the social media table
@@ -257,6 +285,95 @@ export const sponsorTable = pgTable("sponsor", {
   index("sponsor_order_idx").on(table.displayOrder),
 ]);
 
+export const jobCategoryTable = pgTable("job_category", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+});
+
+// Job table
+export const jobTable = pgTable("job", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: varchar("title", { length: 200 }).notNull(),
+  slug: varchar("slug", { length: 250 }).notNull().unique(),
+  company: varchar("company", { length: 200 }).notNull(),
+  companyInitial: varchar("company_initial", { length: 5 }).notNull(),
+  location: varchar("location", { length: 200 }).notNull(),
+  category: text("category"),
+  type: text("type", {
+    enum: ["Penuh Waktu", "Paruh Waktu", "Magang", "Remote"],
+  }).notNull(),
+  salary: varchar("salary", { length: 100 }).notNull(),
+  experience: varchar("experience", { length: 100 }).notNull(),
+  education: varchar("education", { length: 100 }).notNull(),
+  skills: jsonb("skills").$type<string[]>().notNull().default([]),
+  isPremium: boolean("is_premium").default(false).notNull(),
+  isFeatured: boolean("is_featured").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  description: text("description").notNull(),
+  responsibilities: jsonb("responsibilities").$type<string[]>().notNull().default([]),
+  requirements: jsonb("requirements").$type<string[]>().notNull().default([]),
+  benefits: jsonb("benefits").$type<string[]>().notNull().default([]),
+  createdBy: uuid("created_by").references(() => userTable.id, { onDelete: "set null" }),
+  companyId: uuid("company_id").references(() => companyTable.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  index("job_category_idx").on(table.category),
+  index("job_is_active_idx").on(table.isActive),
+  index("job_created_at_idx").on(table.createdAt),
+  index("job_company_idx").on(table.companyId),
+  index("job_slug_idx").on(table.slug),
+]);
+
+export const jobApplicationTable = pgTable("job_application", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: uuid("job_id").notNull().references(() => jobTable.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => userTable.id, { onDelete: "cascade" }),
+  fullName: varchar("full_name", { length: 250 }).notNull(),
+  email: text("email").notNull(),
+  phone: varchar("phone", { length: 50 }).notNull(),
+  linkedin: text("linkedin"),
+  portfolio: text("portfolio"),
+  resumeUrl: text("resume_url").notNull(),
+  expectedSalary: varchar("expected_salary", { length: 100 }),
+  availability: varchar("availability", { length: 100 }).notNull(),
+  coverLetter: text("cover_letter").notNull(),
+  employmentStatus: varchar("employment_status", { length: 100 }),
+  status: varchar("status", { length: 50 }).default("PENDING").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+});
+
+export const companyRelations = relations(companyTable, ({ many }) => ({
+  users: many(userTable),
+  jobs: many(jobTable),
+}));
+
+export const jobRelations = relations(jobTable, ({ one, many }) => ({
+  createdByUser: one(userTable, {
+    fields: [jobTable.createdBy],
+    references: [userTable.id],
+  }),
+  companyRelation: one(companyTable, {
+    fields: [jobTable.companyId],
+    references: [companyTable.id],
+  }),
+  applications: many(jobApplicationTable),
+}));
+
+export const jobApplicationRelations = relations(jobApplicationTable, ({ one }) => ({
+  job: one(jobTable, {
+    fields: [jobApplicationTable.jobId],
+    references: [jobTable.id],
+  }),
+  user: one(userTable, {
+    fields: [jobApplicationTable.userId],
+    references: [userTable.id],
+  }),
+}));
+
 export type TUser = InferSelectModel<typeof userTable>;
 export type TSession = InferSelectModel<typeof sessionTable>;
 export type TSocialMedia = InferSelectModel<typeof socialMediaTable>;
@@ -265,3 +382,7 @@ export type TEvent = InferSelectModel<typeof eventTable>;
 export type TEventRegistration = InferSelectModel<typeof eventRegistrationTable>;
 export type TSponsor = InferSelectModel<typeof sponsorTable>;
 export type TEventTransaction = InferSelectModel<typeof eventTransactionTable>;
+export type TJob = InferSelectModel<typeof jobTable>;
+export type TCompany = InferSelectModel<typeof companyTable>;
+export type TJobApplication = InferSelectModel<typeof jobApplicationTable>;
+export type TJobCategory = InferSelectModel<typeof jobCategoryTable>;

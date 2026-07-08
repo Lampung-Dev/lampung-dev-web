@@ -1,0 +1,1 @@
+ALTER TABLE "job" ADD COLUMN "is_featured" boolean DEFAULT false NOT NULL;

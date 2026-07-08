@@ -51,6 +51,11 @@ export const getUserByEmailService = async (email: string) => {
             email: user?.email,
             picture: user?.picture,
             role: user?.role,
+            companyId: user?.companyId,
+            latitude: user?.latitude,
+            longitude: user?.longitude,
+            locationName: user?.locationName,
+            employmentStatus: user?.employmentStatus,
             title: user?.title,
             status: user?.status,
             hasPassword: !!user?.passwordHash,
@@ -111,6 +116,86 @@ export const updateUserPasswordService = async (email: string, passwordHash: str
     } catch (error) {
         console.log('ERROR update user password service:', error)
         throw new Error('Error updating user password.');
+    }
+}
+
+export const updateUserRoleService = async (
+    userId: string,
+    role: 'ADMIN' | 'MODERATOR' | 'USER' | 'MITRA'
+) => {
+    try {
+        return await db.update(userTable)
+            .set({ role, updatedAt: new Date() })
+            .where(eq(userTable.id, userId))
+            .returning({ id: userTable.id, email: userTable.email, role: userTable.role });
+    } catch (error) {
+        console.error('ERROR updateUserRoleService:', error);
+        throw new Error('Error updating user role.');
+    }
+}
+
+export const linkUserToCompanyService = async (
+    userId: string,
+    companyId: string | null
+) => {
+    try {
+        const updateData: Record<string, unknown> = {
+            companyId,
+            updatedAt: new Date()
+        };
+        if (companyId) {
+            updateData.role = 'MITRA';
+        } else {
+            updateData.role = 'USER';
+        }
+        return await db.update(userTable)
+            .set(updateData)
+            .where(eq(userTable.id, userId))
+            .returning();
+    } catch (error) {
+        console.error('ERROR linkUserToCompanyService:', error);
+        throw new Error('Error linking user to company.');
+    }
+}
+
+export const updateUserLocationAndStatusService = async (
+    userId: string,
+    data: {
+        latitude: string;
+        longitude: string;
+        locationName: string;
+        employmentStatus: string;
+    }
+) => {
+    try {
+        return await db.update(userTable)
+            .set({
+                latitude: data.latitude,
+                longitude: data.longitude,
+                locationName: data.locationName,
+                employmentStatus: data.employmentStatus,
+                updatedAt: new Date()
+            })
+            .where(eq(userTable.id, userId))
+            .returning();
+    } catch (error) {
+        console.error('ERROR updateUserLocationAndStatusService:', error);
+        throw new Error('Error updating user location and status.');
+    }
+}
+
+export const updateUserStatusService = async (
+    userId: string,
+    status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+) => {
+    try {
+        return await db.update(userTable)
+            .set({ status, updatedAt: new Date() })
+            .where(eq(userTable.id, userId))
+            .returning({ id: userTable.id, email: userTable.email, status: userTable.status });
+    } catch (error) {
+        console.error('ERROR updateUserStatusService:', error);
+        throw new Error('Error updating user status.');
     }
 }
 

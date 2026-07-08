@@ -51,7 +51,7 @@ export default function MobileNavigation({
                             </Link>
                         )}
                         {menuItems.map((item) => {
-                            const isActive = pathname === item.href;
+                            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
                             return (
                                 <Link
                                     key={item.title}
