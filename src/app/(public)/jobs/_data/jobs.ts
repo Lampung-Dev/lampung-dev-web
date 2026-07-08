@@ -1,26 +1,23 @@
 export type JobType = "Penuh Waktu" | "Paruh Waktu" | "Magang" | "Remote";
 
-export type JobCategory =
-  | "Web Development"
-  | "Mobile Development"
-  | "UI/UX Design"
-  | "Data & AI"
-  | "DevOps & Cloud"
-  | "IT Support";
+export type JobCategory = string;
 
 export interface Job {
   id: number;
+  slug?: string;
   title: string;
   salary: string;
   type: JobType;
   experience: string;
   education: string;
   company: string;
+  companySlug?: string | null;
   companyInitial: string;
   location: string;
   category: JobCategory;
   postedAt: string;
   isPremium: boolean;
+  isFeatured?: boolean;
   skills: string[];
   description: string;
   responsibilities: string[];

@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Calendar, MapPin, Ticket, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Ticket, ExternalLink, Briefcase } from "lucide-react";
 import { auth } from "@/lib/next-auth";
 import { getUserByEmailService } from "@/services/user";
 import { getUserRegistrationsService } from "@/services/event-registration";
+import { getApplicationsByUserIdService } from "@/services/job-application";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getEventImageUrl } from "@/lib/image-utils";
@@ -21,6 +22,7 @@ export default async function Page() {
   if (!user) return null;
 
   const registrations = await getUserRegistrationsService(user.id);
+  const applications = await getApplicationsByUserIdService(user.id);
 
   return (
     <div className="space-y-8 p-6">
@@ -94,6 +96,85 @@ export default async function Page() {
           </div>
         )}
       </div>
+
+      {/* Status Lamaran Pekerjaan */}
+      <div className="grid gap-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Briefcase className="text-primary" size={24} />
+            Status Lamaran Pekerjaan
+          </h2>
+          <Link href="/jobs/available">
+            <Button variant="outline" size="sm">Cari Lowongan Lain</Button>
+          </Link>
+        </div>
+
+        {applications.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-4 rounded-full bg-muted mb-4">
+                <Briefcase className="text-muted-foreground" size={32} />
+              </div>
+              <CardTitle className="text-lg">Belum ada lamaran dikirim</CardTitle>
+              <CardDescription className="max-w-xs mt-2">
+                Kamu belum melamar lowongan pekerjaan apapun. Yuk temukan peluang karir terbaikmu!
+              </CardDescription>
+              <Link href="/jobs/available" className="mt-6">
+                <Button>Eksplor Lowongan</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {applications.map((app) => {
+              const statusColors: Record<string, string> = {
+                PENDING: "bg-amber-500/20 text-amber-500 border-amber-500/30",
+                REVIEWING: "bg-blue-500/20 text-blue-500 border-blue-500/30",
+                ACCEPTED: "bg-green-500/20 text-green-500 border-green-500/30",
+                REJECTED: "bg-red-500/20 text-red-500 border-red-500/30",
+              };
+              const statusLabels: Record<string, string> = {
+                PENDING: "Menunggu Review",
+                REVIEWING: "Sedang Direview",
+                ACCEPTED: "Diterima",
+                REJECTED: "Ditolak",
+              };
+              return (
+                <Card key={app.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                  <CardHeader className="p-5 pb-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-lg line-clamp-1">{app.job.title}</CardTitle>
+                        <CardDescription className="font-medium text-sm mt-1">{app.job.company}</CardDescription>
+                      </div>
+                      <Badge variant="outline" className={`shrink-0 capitalize ${statusColors[app.status] || ""}`}>
+                        {statusLabels[app.status] || app.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-0 space-y-3">
+                    <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} className="shrink-0" />
+                        <span>{app.job.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} className="shrink-0" />
+                        <span>Melamar pada: {new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(app.createdAt))}</span>
+                      </div>
+                    </div>
+                    {app.status === "ACCEPTED" && (
+                      <div className="mt-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-600 dark:text-green-400">
+                        Selamat! Lamaran Anda telah diterima. Pihak perusahaan akan segera menghubungi Anda untuk tahap selanjutnya.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

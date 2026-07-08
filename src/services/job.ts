@@ -2,7 +2,11 @@ import "server-only";
 import { count, desc, eq, and } from "drizzle-orm";
 
 import db from "@/lib/database";
-import { jobTable, TJob } from "@/lib/database/schema";
+import { jobTable, TJob, TCompany } from "@/lib/database/schema";
+
+export type TJobWithCompany = TJob & {
+  companyRelation?: TCompany | null;
+};
 
 export type TNewJob = {
   title: string;
@@ -16,16 +20,19 @@ export type TNewJob = {
   education: string;
   skills: string[];
   isPremium: boolean;
+  isFeatured: boolean;
   isActive: boolean;
   description: string;
   responsibilities: string[];
   requirements: string[];
   benefits: string[];
   createdBy?: string;
+  companyId?: string;
+  slug?: string;
 };
 
 export type TPaginatedJobs = {
-  jobs: TJob[];
+  jobs: TJobWithCompany[];
   metadata: {
     currentPage: number;
     totalPages: number;
@@ -37,8 +44,16 @@ export type TPaginatedJobs = {
 
 export const createJobService = async (data: TNewJob): Promise<TJob> => {
   try {
+    const baseSlug = `${data.title}-${data.company}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+    const rand = Math.random().toString(36).substring(2, 6);
+    const slug = data.slug || `${baseSlug}-${rand}`;
+
     const [job] = await db.insert(jobTable).values({
       title: data.title,
+      slug,
       company: data.company,
       companyInitial: data.companyInitial,
       location: data.location,
@@ -49,12 +64,14 @@ export const createJobService = async (data: TNewJob): Promise<TJob> => {
       education: data.education,
       skills: data.skills,
       isPremium: data.isPremium,
+      isFeatured: data.isFeatured ?? false,
       isActive: data.isActive,
       description: data.description,
       responsibilities: data.responsibilities,
       requirements: data.requirements,
       benefits: data.benefits,
       createdBy: data.createdBy ?? null,
+      companyId: data.companyId ?? null,
     }).returning();
     return job;
   } catch (error) {
@@ -67,17 +84,22 @@ export const getAllJobsService = async ({
   page = 1,
   limit = 20,
   onlyActive = false,
+  companyId,
 }: {
   page?: number;
   limit?: number;
   onlyActive?: boolean;
+  companyId?: string;
 } = {}): Promise<TPaginatedJobs> => {
   try {
     const validPage = Math.max(1, page);
     const validLimit = Math.min(50, Math.max(1, limit));
     const offset = (validPage - 1) * validLimit;
 
-    const where = onlyActive ? eq(jobTable.isActive, true) : undefined;
+    const conditions = [];
+    if (onlyActive) conditions.push(eq(jobTable.isActive, true));
+    if (companyId) conditions.push(eq(jobTable.companyId, companyId));
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const totalJobs = await db
       .select({ count: count() })
@@ -90,6 +112,9 @@ export const getAllJobsService = async ({
       limit: validLimit,
       offset,
       orderBy: [desc(jobTable.createdAt)],
+      with: {
+        companyRelation: true,
+      },
     });
 
     const totalPages = Math.ceil(totalJobs / validLimit);
@@ -106,6 +131,21 @@ export const getAllJobsService = async ({
     };
   } catch (error) {
     console.error("ERROR getAllJobsService:", error);
+    throw new Error("Gagal mengambil data lowongan.");
+  }
+};
+
+export const getJobBySlugService = async (slug: string) => {
+  try {
+    const job = await db.query.jobTable.findFirst({
+      where: and(eq(jobTable.slug, slug), eq(jobTable.isActive, true)),
+      with: {
+        companyRelation: true,
+      },
+    });
+    return job ?? null;
+  } catch (error) {
+    console.error("ERROR getJobBySlugService:", error);
     throw new Error("Gagal mengambil data lowongan.");
   }
 };

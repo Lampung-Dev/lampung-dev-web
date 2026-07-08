@@ -13,8 +13,8 @@ import {
   Eye,
   EyeOff,
   Briefcase,
-  MapPin,
   Users,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Dialog,
   DialogContent,
@@ -67,11 +68,12 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { type TJob } from "@/lib/database/schema";
-import { JOB_CATEGORIES } from "@/app/(public)/career/_data/jobs";
+import { JOB_CATEGORIES } from "@/app/(public)/jobs/_data/jobs";
 
 type SerializedTJob = Omit<TJob, "createdAt" | "updatedAt"> & {
   createdAt: string;
   updatedAt: string;
+  isFeatured: boolean;
 };
 import { createJobAction } from "@/actions/jobs/create-job-action";
 import { updateJobAction } from "@/actions/jobs/update-job-action";
@@ -84,20 +86,14 @@ const jobSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter"),
   company: z.string().min(2, "Nama perusahaan minimal 2 karakter"),
   location: z.string().min(2, "Lokasi wajib diisi"),
-  category: z.enum([
-    "Web Development",
-    "Mobile Development",
-    "UI/UX Design",
-    "Data & AI",
-    "DevOps & Cloud",
-    "IT Support",
-  ]),
+  category: z.string().optional().or(z.literal("")),
   type: z.enum(["Penuh Waktu", "Paruh Waktu", "Magang", "Remote"]),
   salary: z.string().min(1, "Rentang gaji wajib diisi"),
   experience: z.string().min(1, "Pengalaman wajib diisi"),
   education: z.string().min(1, "Pendidikan wajib diisi"),
   skills: z.string().min(1, "Minimal satu skill wajib diisi"),
   isPremium: z.boolean().default(false),
+  isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
   description: z.string().min(20, "Deskripsi minimal 20 karakter"),
   responsibilities: z.string().min(10, "Tanggung jawab wajib diisi"),
@@ -122,27 +118,32 @@ function JobFormDialog({
   editing,
   onSubmit,
   loading,
+  userCompany,
+  categories,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   editing: SerializedTJob | null;
   onSubmit: (values: JobFormValues) => Promise<void>;
   loading: boolean;
+  userCompany?: { id: string; name: string; initial: string } | null;
+  categories: { id: string; name: string; slug: string }[];
 }) {
   const form = useForm<JobFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(jobSchema) as any,
     defaultValues: {
       title: "",
-      company: "",
+      company: userCompany?.name || "",
       location: "",
-      category: "Web Development",
+      category: "none",
       type: "Penuh Waktu",
       salary: "",
       experience: "",
       education: "",
       skills: "",
       isPremium: false,
+      isFeatured: false,
       isActive: true,
       description: "",
       responsibilities: "",
@@ -157,13 +158,14 @@ function JobFormDialog({
         title: editing.title,
         company: editing.company,
         location: editing.location,
-        category: editing.category,
+        category: editing.category || "none",
         type: editing.type,
         salary: editing.salary,
         experience: editing.experience,
         education: editing.education,
         skills: (editing.skills as string[]).join(", "),
         isPremium: editing.isPremium,
+        isFeatured: editing.isFeatured ?? false,
         isActive: editing.isActive,
         description: editing.description,
         responsibilities: (editing.responsibilities as string[]).join("\n"),
@@ -173,7 +175,7 @@ function JobFormDialog({
     } else {
       form.reset({
         title: "",
-        company: "",
+        company: userCompany?.name || "",
         location: "",
         category: "Web Development",
         type: "Penuh Waktu",
@@ -182,6 +184,7 @@ function JobFormDialog({
         education: "",
         skills: "",
         isPremium: false,
+        isFeatured: false,
         isActive: true,
         description: "",
         responsibilities: "",
@@ -189,7 +192,7 @@ function JobFormDialog({
         benefits: "",
       });
     }
-  }, [editing, form, open]);
+  }, [editing, form, open, userCompany?.name]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -217,7 +220,7 @@ function JobFormDialog({
               <FormField control={form.control} name="company" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nama Perusahaan</FormLabel>
-                  <FormControl><Input placeholder="PT Contoh Indonesia" {...field} /></FormControl>
+                  <FormControl><Input placeholder="PT Contoh Indonesia" disabled={!!userCompany} {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -233,10 +236,15 @@ function JobFormDialog({
               <FormField control={form.control} name="category" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Kategori</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Kategori (opsional)" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
-                      {JOB_CATEGORIES.map((c) => (
+                      <SelectItem value="none">Pilih Kategori (opsional)</SelectItem>
+                      {(categories.length > 0 ? categories : JOB_CATEGORIES).map((c) => (
                         <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -295,12 +303,12 @@ function JobFormDialog({
             </div>
 
             {/* Toggles */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <FormField control={form.control} name="isPremium" render={({ field }) => (
                 <FormItem className="flex items-center justify-between border rounded-lg p-3">
                   <div>
                     <FormLabel>Premium</FormLabel>
-                    <FormDescription className="text-xs">Tampilkan badge premium</FormDescription>
+                    <FormDescription className="text-xs">Badge premium</FormDescription>
                   </div>
                   <FormControl>
                     <Button type="button" variant={field.value ? "default" : "outline"} size="sm"
@@ -312,11 +320,27 @@ function JobFormDialog({
                 </FormItem>
               )} />
 
+              <FormField control={form.control} name="isFeatured" render={({ field }) => (
+                <FormItem className="flex items-center justify-between border rounded-lg p-3">
+                  <div>
+                    <FormLabel>Pilihan</FormLabel>
+                    <FormDescription className="text-xs">Lowongan pilihan</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Button type="button" variant={field.value ? "default" : "outline"} size="sm"
+                      className={field.value ? "bg-blue-600 hover:bg-blue-700" : ""}
+                      onClick={() => field.onChange(!field.value)}>
+                      {field.value ? <><Star className="w-3 h-3 mr-1" />Ya</> : "Tidak"}
+                    </Button>
+                  </FormControl>
+                </FormItem>
+              )} />
+
               <FormField control={form.control} name="isActive" render={({ field }) => (
                 <FormItem className="flex items-center justify-between border rounded-lg p-3">
                   <div>
                     <FormLabel>Status</FormLabel>
-                    <FormDescription className="text-xs">Tampil di halaman publik</FormDescription>
+                    <FormDescription className="text-xs">Tampil publik</FormDescription>
                   </div>
                   <FormControl>
                     <Button type="button" variant={field.value ? "default" : "outline"} size="sm"
@@ -410,9 +434,13 @@ function useAppCounts() {
 export function JobsManageClient({
   initialJobs,
   totalJobs,
+  userCompany,
+  categories = [],
 }: {
   initialJobs: SerializedTJob[];
   totalJobs: number;
+  userCompany?: { id: string; name: string; initial: string } | null;
+  categories?: { id: string; name: string; slug: string }[];
 }) {
   const router = useRouter();
   const appCounts = useAppCounts();
@@ -422,24 +450,35 @@ export function JobsManageClient({
 
   const totalApplications = Object.values(appCounts).reduce((a, b) => a + b, 0);
   const activeCount = initialJobs.filter((j) => j.isActive).length;
-  const premiumCount = initialJobs.filter((j) => j.isPremium).length;
+  const featuredCount = initialJobs.filter((j) => j.isFeatured).length;
 
   const handleSubmit = useCallback(
     async (values: JobFormValues) => {
       setLoading(true);
       try {
+        const companyInitial = userCompany
+          ? userCompany.initial
+          : (values.company
+              .split(" ")
+              .map((w) => w[0])
+              .join("")
+              .slice(0, 5)
+              .toUpperCase() || values.company.slice(0, 2).toUpperCase());
+
         const payload = {
           title: values.title,
-          company: values.company,
-          companyInitial: values.company.slice(0, 2).toUpperCase(),
+          company: userCompany ? userCompany.name : values.company,
+          companyInitial,
+          companyId: userCompany ? userCompany.id : undefined,
           location: values.location,
-          category: values.category,
+          category: (values.category === "none" || !values.category) ? null : values.category,
           type: values.type,
           salary: values.salary,
           experience: values.experience,
           education: values.education,
           skills: values.skills.split(",").map((s) => s.trim()).filter(Boolean),
           isPremium: values.isPremium,
+          isFeatured: values.isFeatured,
           isActive: values.isActive,
           description: values.description,
           responsibilities: values.responsibilities.split("\n").map((s) => s.trim()).filter(Boolean),
@@ -464,7 +503,7 @@ export function JobsManageClient({
         setLoading(false);
       }
     },
-    [editing, router]
+    [editing, router, userCompany]
   );
 
   const handleDelete = async (id: string, title: string) => {
@@ -510,7 +549,7 @@ export function JobsManageClient({
         {[
           { label: "Total Lowongan", value: totalJobs, icon: Briefcase },
           { label: "Aktif", value: activeCount, icon: Eye },
-          { label: "Premium", value: premiumCount, icon: MapPin },
+          { label: "Pilihan", value: featuredCount, icon: Star },
           { label: "Lamaran Masuk", value: totalApplications, icon: Users },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="border rounded-lg bg-card p-4">
@@ -542,8 +581,14 @@ export function JobsManageClient({
           <TableBody>
             {initialJobs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-16 text-muted-foreground">
-                  Belum ada lowongan. Klik &ldquo;Tambah Lowongan&rdquo; untuk memulai.
+                <TableCell colSpan={9} className="py-12">
+                  <EmptyState
+                    icon={Briefcase}
+                    title="Belum Ada Lowongan Pekerjaan"
+                    description="Kelola dan publikasikan lowongan pekerjaan pertama Anda ke komunitas Lampung Dev."
+                    actionLabel="Tambah Lowongan"
+                    onAction={() => { setEditing(null); setIsDialogOpen(true); }}
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -558,12 +603,17 @@ export function JobsManageClient({
                             Premium
                           </Badge>
                         )}
+                        {job.isFeatured && (
+                          <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs">
+                            Pilihan
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground">{job.company}</p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-xs">{job.category}</Badge>
+                    <Badge variant="outline" className="text-xs">{job.category || "General"}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={`text-xs ${TYPE_BADGE[job.type] ?? ""}`}>
@@ -643,6 +693,8 @@ export function JobsManageClient({
         editing={editing}
         onSubmit={handleSubmit}
         loading={loading}
+        userCompany={userCompany}
+        categories={categories}
       />
     </div>
   );

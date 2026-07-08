@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { applyJobAction } from "@/actions/jobs/apply-job-action";
+import { toast } from "sonner";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -19,6 +21,8 @@ import {
   CalendarClock,
   Copy,
   Check,
+  MapPin,
+  Navigation,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,8 +52,6 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { type Job } from "../../../_data/jobs";
-
-// ─── Schema ──────────────────────────────────────────────────────────────────
 
 const applySchema = z.object({
   fullName: z.string().min(2, "Nama minimal 2 karakter"),
@@ -82,6 +84,10 @@ const applySchema = z.object({
     .string()
     .min(50, "Cover letter minimal 50 karakter")
     .max(2000, "Cover letter maksimal 2000 karakter"),
+  employmentStatus: z.string().min(1, "Status pekerjaan wajib diisi"),
+  locationName: z.string().min(1, "Lokasi wajib diisi"),
+  latitude: z.string().min(1, "Latitude wajib diisi. Harap klik tombol GPS."),
+  longitude: z.string().min(1, "Longitude wajib diisi. Harap klik tombol GPS."),
 });
 
 type ApplyFormValues = z.infer<typeof applySchema>;
@@ -114,19 +120,9 @@ export interface JobApplicationPayload {
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
-const STORAGE_KEY = "lampung_dev_job_applications";
 
-function saveApplication(payload: JobApplicationPayload) {
-  try {
-    const existing: JobApplicationPayload[] = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) ?? "[]"
-    );
-    existing.push(payload);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing, null, 2));
-  } catch {
-    // silent — storage may be blocked
-  }
-}
+
+
 
 function buildPayload(
   values: ApplyFormValues,
@@ -162,9 +158,11 @@ function buildPayload(
 function SuccessDialog({
   open,
   payload,
+  jobSlug,
 }: {
   open: boolean;
   payload: JobApplicationPayload | null;
+  jobSlug: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -244,7 +242,7 @@ function SuccessDialog({
         <Separator className="bg-white/10" />
 
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
-          <Link href="/career" className="flex-1">
+          <Link href="/jobs" className="flex-1">
             <Button
               variant="outline"
               className="w-full border-white/20 text-gray-300 hover:bg-white/10"
@@ -252,7 +250,7 @@ function SuccessDialog({
               Lihat Lowongan Lain
             </Button>
           </Link>
-          <Link href={`/career/${payload?.jobId}`} className="flex-1">
+          <Link href={`/jobs/${jobSlug}`} className="flex-1">
             <Button className="w-full bg-primary hover:bg-primary/90">
               Kembali ke Detail
             </Button>
@@ -282,47 +280,84 @@ function FormSection({
   );
 }
 
+type InitialUser = {
+  name: string;
+  email: string;
+  phone?: string | null;
+  employmentStatus?: string | null;
+  locationName?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
+  socialMediaLinks?: Array<{ platform: string; url: string }>;
+};
+
 // ─── Main form ────────────────────────────────────────────────────────────────
 
-export function ApplyForm({ job }: { job: Job }) {
+export function ApplyForm({ job, initialUser }: { job: Job; initialUser?: InitialUser }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
   const [successPayload, setSuccessPayload] =
     useState<JobApplicationPayload | null>(null);
 
   const form = useForm<ApplyFormValues>({
     resolver: zodResolver(applySchema),
     defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-      linkedin: "",
-      portfolio: "",
+      fullName: initialUser?.name || "",
+      email: initialUser?.email || "",
+      phone: initialUser?.phone || "",
+      linkedin: initialUser?.socialMediaLinks?.find((l: { platform: string; url: string }) => l.platform.toLowerCase() === "linkedin")?.url || "",
+      portfolio: initialUser?.socialMediaLinks?.find((l: { platform: string; url: string }) => l.platform.toLowerCase() === "portfolio")?.url || "",
       resumeUrl: "",
       expectedSalary: "",
       availability: undefined,
       coverLetter: "",
+      employmentStatus: initialUser?.employmentStatus || "",
+      locationName: initialUser?.locationName || "",
+      latitude: initialUser?.latitude || "",
+      longitude: initialUser?.longitude || "",
     },
   });
 
   const coverLetterValue = form.watch("coverLetter");
 
+  const fetchGpsLocation = () => {
+    setGpsLoading(true);
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      toast.error("Browser Anda tidak mendukung Geolocation.");
+      setGpsLoading(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toString();
+        const lng = position.coords.longitude.toString();
+        form.setValue("latitude", lat);
+        form.setValue("longitude", lng);
+        toast.success(`Berhasil mengambil koordinat GPS: ${lat.slice(0, 8)}, ${lng.slice(0, 8)}`);
+        setGpsLoading(false);
+      },
+      (error) => {
+        console.error("GPS Error:", error);
+        toast.error("Gagal mendapatkan lokasi dari GPS. Silakan izinkan akses lokasi di browser Anda.");
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   async function onSubmit(values: ApplyFormValues) {
     setIsSubmitting(true);
     try {
-      // Simulate network delay (remove when wiring real API)
-      await new Promise((r) => setTimeout(r, 1200));
-
+      const res = await applyJobAction(String(job.id), values);
+      if (!res.success) {
+        toast.error(res.error || "Gagal mengirim lamaran.");
+        return;
+      }
+      toast.success("Lamaran berhasil dikirim!");
       const payload = buildPayload(values, job);
-      saveApplication(payload);
-
-      // TODO: replace with real API call
-      // await fetch("/api/job-applications", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(payload),
-      // });
-
       setSuccessPayload(payload);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengirim lamaran.");
     } finally {
       setIsSubmitting(false);
     }
@@ -456,8 +491,124 @@ export function ApplyForm({ job }: { job: Job }) {
             </div>
           </FormSection>
 
+          {/* Status & Lokasi (GPS) */}
+          <FormSection title="2. Status Pekerjaan & Lokasi (GPS)">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="employmentStatus"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel className="text-gray-200">
+                      Status Pekerjaan <span className="text-red-400">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Pilih status pekerjaan saat ini" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-black/90 border-white/20 text-white">
+                        {[
+                          "Sedang Tidak Bekerja",
+                          "Bekerja (Mencari Peluang Baru)",
+                          "Bekerja (Tidak Mencari Peluang)",
+                          "Fresh Graduate",
+                          "Mahasiswa / Pelajar",
+                        ].map((opt) => (
+                          <SelectItem
+                            key={opt}
+                            value={opt}
+                            className="focus:bg-white/10 focus:text-white"
+                          >
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="locationName"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel className="text-gray-200">
+                      Nama Lokasi / Kota Domisili <span className="text-red-400">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Input
+                          placeholder="Contoh: Bandar Lampung, Lampung"
+                          className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-gray-500 focus:border-primary"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="sm:col-span-2 border border-white/10 rounded-lg p-4 bg-white/5 space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Koordinat Lokasi GPS</h4>
+                    <p className="text-xs text-gray-400">Diperlukan koordinat GPS akurat dari browser Anda.</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={fetchGpsLocation}
+                    disabled={gpsLoading}
+                    className="border-primary/40 text-primary hover:bg-primary/10 gap-1.5 shrink-0"
+                  >
+                    {gpsLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Navigation className="w-3.5 h-3.5" />
+                    )}
+                    Ambil GPS
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-gray-500 block mb-1">Latitude</span>
+                    <Input
+                      readOnly
+                      placeholder="Belum terdeteksi"
+                      {...form.register("latitude")}
+                      className="bg-white/5 border-white/10 text-gray-300 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block mb-1">Longitude</span>
+                    <Input
+                      readOnly
+                      placeholder="Belum terdeteksi"
+                      {...form.register("longitude")}
+                      className="bg-white/5 border-white/10 text-gray-300 h-8 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
+                </div>
+                {(form.formState.errors.latitude || form.formState.errors.longitude) && (
+                  <p className="text-xs text-red-400 mt-1">Harap klik tombol &quot;Ambil GPS&quot; untuk mendeteksi koordinat Anda.</p>
+                )}
+              </div>
+            </div>
+          </FormSection>
+
           {/* Application Details */}
-          <FormSection title="2. Detail Lamaran">
+          <FormSection title="3. Detail Lamaran">
             <FormField
               control={form.control}
               name="resumeUrl"
@@ -554,7 +705,7 @@ export function ApplyForm({ job }: { job: Job }) {
           </FormSection>
 
           {/* Cover Letter */}
-          <FormSection title="3. Cover Letter">
+          <FormSection title="4. Cover Letter">
             <FormField
               control={form.control}
               name="coverLetter"
@@ -592,7 +743,7 @@ export function ApplyForm({ job }: { job: Job }) {
 
           {/* Submit */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href={`/career/${job.id}`} className="sm:w-auto">
+            <Link href={`/jobs/${job.slug}`} className="sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
@@ -622,7 +773,7 @@ export function ApplyForm({ job }: { job: Job }) {
         </form>
       </Form>
 
-      <SuccessDialog open={!!successPayload} payload={successPayload} />
+      <SuccessDialog open={!!successPayload} payload={successPayload} jobSlug={job.slug || ""} />
     </>
   );
 }
