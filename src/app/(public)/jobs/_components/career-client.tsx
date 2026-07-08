@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   Building2,
+  Star,
+  FileX2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   type Job,
   type JobCategory,
@@ -30,14 +33,13 @@ import {
   LOCATIONS,
   CATEGORY_TABS,
   JOB_CATEGORIES,
-  JOBS_DATA,
 } from "../_data/jobs";
 
 const JOBS_PER_PAGE = 9;
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job, hasApplied }: { job: Job & { idString?: string }; hasApplied: boolean }) {
   return (
-    <Link href={`/career/${job.id}`} className="block group">
+    <Link href={`/jobs/${job.slug || job.id}`} className="block group">
       <div className="border border-white/10 rounded-xl p-5 backdrop-blur-sm bg-white/5 group-hover:bg-white/10 group-hover:border-white/25 transition-all flex flex-col gap-3 h-full">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-white text-base leading-snug group-hover:text-primary transition-colors">
@@ -52,6 +54,17 @@ function JobCard({ job }: { job: Job }) {
           {job.isPremium && (
             <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs">
               Premium
+            </Badge>
+          )}
+          {job.isFeatured && (
+            <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs">
+              <Star className="w-3 h-3 mr-1" />
+              Pilihan
+            </Badge>
+          )}
+          {hasApplied && (
+            <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-semibold">
+              Sudah Melamar
             </Badge>
           )}
           <Badge
@@ -142,7 +155,7 @@ function ClientPagination({
             size="icon"
             className={
               page === currentPage
-                ? "bg-primary text-white"
+                ? "bg-primary text-black"
                 : "border-white/20 text-gray-300 hover:bg-white/10"
             }
             onClick={() => onPageChange(page)}
@@ -165,32 +178,59 @@ function ClientPagination({
   );
 }
 
-export function CareerClient() {
+export function CareerClient({
+  initialJobs,
+  categories = [],
+  appliedJobIds = [],
+}: {
+  initialJobs: (Job & { idString?: string })[];
+  categories?: { id: string; name: string; slug: string }[];
+  appliedJobIds?: string[];
+}) {
   const [query, setQuery] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [location, setLocation] = useState("Semua Kota");
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const renderedCategories = useMemo(() => {
+    return categories.length > 0
+      ? categories.map((cat) => ({ name: cat.name, sub: "Peluang karir terbaik" }))
+      : JOB_CATEGORIES;
+  }, [categories]);
+
+  // Dynamic category tabs based on database categories
+  const categoryTabs = useMemo(() => {
+    if (categories.length > 0) {
+      return ["Semua", ...categories.map((c) => c.name)];
+    }
+    return CATEGORY_TABS;
+  }, [categories]);
+
+  // Featured jobs: only jobs marked isFeatured by admin
+  const featuredJobs = useMemo(() => {
+    return initialJobs.filter((job) => job.isFeatured);
+  }, [initialJobs]);
+
   const filteredJobs = useMemo(() => {
-    return JOBS_DATA.filter((job) => {
+    return initialJobs.filter((job) => {
       const q = query.toLowerCase();
       const matchesQuery =
         !q ||
         job.title.toLowerCase().includes(q) ||
         job.company.toLowerCase().includes(q) ||
         job.skills.some((s) => s.toLowerCase().includes(q)) ||
-        job.category.toLowerCase().includes(q);
+        (job.category || "").toLowerCase().includes(q);
 
       const matchesLocation =
         location === "Semua Kota" || job.location.includes(location);
 
       const matchesCategory =
-        activeCategory === "Semua" || job.category === activeCategory;
+        activeCategory === "Semua" || (job.category || "") === activeCategory;
 
       return matchesQuery && matchesLocation && matchesCategory;
     });
-  }, [query, location, activeCategory]);
+  }, [query, location, activeCategory, initialJobs]);
 
   const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
 
@@ -232,6 +272,33 @@ export function CareerClient() {
 
   const hasActiveFilters =
     query !== "" || location !== "Semua Kota" || activeCategory !== "Semua";
+
+  // If there are absolutely no jobs at all
+  if (initialJobs.length === 0) {
+    return (
+      <div className="space-y-10">
+        {/* Hero / Search */}
+        <section className="text-center space-y-6 pt-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-white">
+            Temukan Karir Impianmu di{" "}
+            <span className="text-primary">Ekosistem Teknologi</span>
+          </h1>
+          <p className="text-gray-400 max-w-xl mx-auto">
+            Ribuan lowongan kerja di bidang teknologi menunggumu. Bergabung dan
+            wujudkan karirmu bersama komunitas Lampung Dev.
+          </p>
+        </section>
+
+        <section className="py-8">
+          <EmptyState
+            icon={FileX2}
+            title="Belum Ada Lowongan Dibuka"
+            description="Saat ini belum ada perusahaan yang membuka lowongan pekerjaan. Cek kembali nanti untuk peluang baru!"
+          />
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
@@ -277,7 +344,7 @@ export function CareerClient() {
           </div>
 
           <Button
-            className="bg-primary hover:bg-primary/90 px-6 shrink-0"
+            className="bg-primary hover:bg-primary/90 text-black px-6 shrink-0"
             onClick={handleSearch}
           >
             <Briefcase className="w-4 h-4 mr-2" />
@@ -306,7 +373,7 @@ export function CareerClient() {
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="border border-white/10 rounded-xl backdrop-blur-sm bg-white/5 overflow-hidden">
           <div className="divide-y divide-white/10">
-            {JOB_CATEGORIES.map((cat) => {
+            {renderedCategories.map((cat) => {
               const isActive = activeCategory === cat.name;
               return (
                 <button
@@ -364,10 +431,31 @@ export function CareerClient() {
         </div>
       </section>
 
-      {/* Job Listings */}
+      {/* Featured Jobs — Lowongan Kerja Pilihan */}
+      {featuredJobs.length > 0 && (
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-400" />
+              <h2 className="text-2xl font-bold text-white">Lowongan Kerja Pilihan</h2>
+            </div>
+            <span className="text-gray-400 text-sm">
+              {featuredJobs.length} lowongan pilihan
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {featuredJobs.map((job) => (
+              <JobCard key={job.id} job={job} hasApplied={appliedJobIds.includes(job.idString || "")} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* All Job Listings */}
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="text-2xl font-bold text-white">Lowongan Kerja Pilihan</h2>
+          <h2 className="text-2xl font-bold text-white">Semua Lowongan</h2>
           <span className="text-gray-400 text-sm">
             {filteredJobs.length} lowongan ditemukan
           </span>
@@ -375,13 +463,13 @@ export function CareerClient() {
 
         {/* Category Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {CATEGORY_TABS.map((tab) => (
+          {categoryTabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveCategory(tab)}
               className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors shrink-0 ${
                 activeCategory === tab
-                  ? "bg-primary text-white"
+                  ? "bg-primary/90 text-black shadow-lg shadow-primary/20"
                   : "bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white"
               }`}
             >
@@ -400,7 +488,7 @@ export function CareerClient() {
                 className="border-primary/50 text-primary gap-1.5 cursor-pointer hover:bg-primary/10"
                 onClick={() => { setQuery(""); setInputValue(""); }}
               >
-                Pencarian: "{query}"
+                Pencarian: &quot;{query}&quot;
                 <X className="w-3 h-3" />
               </Badge>
             )}
@@ -426,7 +514,7 @@ export function CareerClient() {
             )}
             <button
               onClick={clearFilters}
-              className="text-xs text-gray-500 hover:text-gray-300 underline underline-offset-2"
+              className="text-xs text-primary/80 hover:text-primary font-medium underline underline-offset-2 transition-colors"
             >
               Hapus semua
             </button>
@@ -437,26 +525,17 @@ export function CareerClient() {
         {paginatedJobs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {paginatedJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard key={job.id} job={job} hasApplied={appliedJobIds.includes(job.idString || "")} />
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center border border-white/10 rounded-xl bg-white/5">
-            <span className="text-5xl">🔍</span>
-            <p className="text-gray-300 font-medium">
-              Tidak ada lowongan yang sesuai
-            </p>
-            <p className="text-gray-500 text-sm max-w-xs">
-              Coba ubah kata kunci pencarian, lokasi, atau kategori yang kamu pilih.
-            </p>
-            <Button
-              variant="outline"
-              className="border-white/20 text-gray-300 hover:bg-white/10 mt-2"
-              onClick={clearFilters}
-            >
-              Hapus Filter
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title="Tidak ada lowongan yang sesuai"
+            description="Coba ubah kata kunci pencarian, lokasi, atau kategori yang kamu pilih."
+            actionLabel="Hapus Filter"
+            onAction={clearFilters}
+          />
         )}
 
         {/* Pagination */}

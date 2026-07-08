@@ -7,10 +7,12 @@ import {
   Clock,
   Building2,
   Briefcase,
+  Send,
 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -18,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState } from "@/components/ui/empty-state";
 import { type TJob } from "@/lib/database/schema";
-import { getRelativeTime } from "@/services/job";
-import { CATEGORY_TABS, LOCATIONS } from "@/app/(public)/career/_data/jobs";
+import { getRelativeTime } from "@/lib/date";
+import { CATEGORY_TABS, LOCATIONS } from "@/app/(public)/jobs/_data/jobs";
 
 type SerializedTJob = Omit<TJob, "createdAt" | "updatedAt"> & {
   createdAt: string;
@@ -34,7 +37,7 @@ const TYPE_COLORS: Record<string, string> = {
   Remote: "border-green-500/40 text-green-400",
 };
 
-function JobCard({ job }: { job: SerializedTJob }) {
+function JobCard({ job, hasApplied }: { job: SerializedTJob; hasApplied: boolean }) {
   return (
     <div className="border rounded-lg bg-card p-4 flex flex-col gap-3 hover:border-primary/50 transition-colors">
       <div className="flex items-start justify-between gap-2">
@@ -65,7 +68,7 @@ function JobCard({ job }: { job: SerializedTJob }) {
           {job.experience}
         </Badge>
         <Badge variant="outline" className="text-xs text-muted-foreground">
-          {job.category}
+          {job.category || "General"}
         </Badge>
       </div>
 
@@ -83,12 +86,26 @@ function JobCard({ job }: { job: SerializedTJob }) {
             {job.location}
           </p>
         </div>
+        {hasApplied ? (
+          <Button disabled size="sm" className="bg-muted text-muted-foreground text-xs h-7">
+            Sudah Melamar
+          </Button>
+        ) : (
+          <Link href={`/jobs/${job.slug}/apply`}>
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-black text-xs gap-1 h-7">
+              <Send className="w-3 h-3" />
+              Lamar
+            </Button>
+          </Link>
+        )}
       </div>
 
-      <p className="text-xs text-muted-foreground flex items-center gap-1">
-        <Clock className="w-3 h-3" />
-        {getRelativeTime(job.createdAt)}
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+          <Clock className="w-2.5 h-2.5" />
+          {getRelativeTime(job.createdAt)}
+        </p>
+      </div>
     </div>
   );
 }
@@ -96,9 +113,11 @@ function JobCard({ job }: { job: SerializedTJob }) {
 export function JobsBrowseClient({
   jobs,
   totalJobs,
+  appliedJobIds = [],
 }: {
   jobs: SerializedTJob[];
   totalJobs: number;
+  appliedJobIds?: string[];
 }) {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("Semua Kota");
@@ -115,7 +134,7 @@ export function JobsBrowseClient({
       const matchLocation =
         location === "Semua Kota" || job.location.includes(location);
       const matchCategory =
-        category === "Semua" || job.category === category;
+        category === "Semua" || (job.category || "") === category;
       return matchQuery && matchLocation && matchCategory;
     });
   }, [jobs, query, location, category]);
@@ -193,24 +212,17 @@ export function JobsBrowseClient({
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} hasApplied={appliedJobIds.includes(job.id)} />
           ))}
         </div>
       ) : (
-        <div className="border rounded-lg bg-card py-16 flex flex-col items-center gap-3 text-center">
-          <span className="text-4xl">🔍</span>
-          <p className="font-medium">Tidak ada lowongan yang sesuai</p>
-          <p className="text-sm text-muted-foreground">
-            Coba ubah kata kunci atau filter yang kamu gunakan.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { setQuery(""); setLocation("Semua Kota"); setCategory("Semua"); }}
-          >
-            Reset Filter
-          </Button>
-        </div>
+        <EmptyState
+          icon={Search}
+          title="Tidak ada lowongan yang sesuai"
+          description="Coba ubah kata kunci atau filter yang kamu gunakan."
+          actionLabel="Reset Filter"
+          onAction={() => { setQuery(""); setLocation("Semua Kota"); setCategory("Semua"); }}
+        />
       )}
     </div>
   );

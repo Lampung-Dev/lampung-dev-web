@@ -13,42 +13,68 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { JOBS_DATA } from "../_data/jobs";
+import { getJobBySlugService, getAllJobsService } from "@/services/job";
+import { getRelativeTime } from "@/lib/date";
+import { auth } from "@/lib/next-auth";
+import { getUserByEmailService } from "@/services/user";
+import { getApplicationsByUserIdService } from "@/services/job-application";
 import { ApplyButton } from "./_components/apply-button";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return JOBS_DATA.map((job) => ({ id: String(job.id) }));
+  const { jobs } = await getAllJobsService({ onlyActive: true, limit: 50 });
+  return jobs.map((job) => ({ slug: job.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const job = JOBS_DATA.find((j) => j.id === Number(id));
+  const { slug } = await params;
+  const job = await getJobBySlugService(slug);
   if (!job) return { title: "Lowongan Tidak Ditemukan" };
   return {
-    title: `${job.title} – ${job.company} | Lampung Dev Career`,
+    title: `${job.title} – ${job.company} | Lampung Dev Jobs`,
     description: job.description.slice(0, 155),
   };
 }
 
 export default async function JobDetailPage({ params }: Props) {
-  const { id } = await params;
-  const job = JOBS_DATA.find((j) => j.id === Number(id));
+  const { slug } = await params;
+  const dbJob = await getJobBySlugService(slug);
 
-  if (!job) notFound();
+  if (!dbJob) notFound();
 
-  const relatedJobs = JOBS_DATA.filter(
-    (j) => j.category === job.category && j.id !== job.id
-  ).slice(0, 3);
+  const session = await auth();
+  let hasApplied = false;
+  if (session?.user?.email) {
+    const user = await getUserByEmailService(session.user.email);
+    if (user) {
+      const apps = await getApplicationsByUserIdService(user.id);
+      hasApplied = apps.some((app) => app.jobId === dbJob.id);
+    }
+  }
+
+  const { jobs: allJobs } = await getAllJobsService({ onlyActive: true, limit: 50 });
+  const relatedJobs = allJobs
+    .filter((j) => j.category === dbJob.category && j.id !== dbJob.id)
+    .slice(0, 3)
+    .map((j) => ({
+      ...j,
+      postedAt: getRelativeTime(j.createdAt),
+    }));
+
+  const job = {
+    ...dbJob,
+    postedAt: getRelativeTime(dbJob.createdAt),
+  };
+
 
   return (
     <div className="space-y-8 pb-12">
       {/* Back */}
       <Link
-        href="/career"
+        href="/jobs"
         className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -76,7 +102,13 @@ export default async function JobDetailPage({ params }: Props) {
                     </Badge>
                   )}
                 </div>
-                <p className="text-gray-300 font-medium mt-1">{job.company}</p>
+                {job.companyRelation?.slug ? (
+                  <Link href={`/companies/${job.companyRelation.slug}`} className="inline-block text-primary hover:underline font-medium mt-1">
+                    {job.companyRelation.name || job.company}
+                  </Link>
+                ) : (
+                  <p className="text-gray-300 font-medium mt-1">{job.company}</p>
+                )}
               </div>
             </div>
 
@@ -122,7 +154,7 @@ export default async function JobDetailPage({ params }: Props) {
                 variant="outline"
                 className="border-white/20 text-gray-300"
               >
-                {job.category}
+                {job.category || "General"}
               </Badge>
             </div>
 
@@ -134,7 +166,7 @@ export default async function JobDetailPage({ params }: Props) {
                 <p className="text-xl font-bold text-green-400">{job.salary}</p>
                 <p className="text-xs text-gray-500">per bulan</p>
               </div>
-              <ApplyButton jobId={job.id} />
+              <ApplyButton jobSlug={job.slug} hasApplied={hasApplied} />
             </div>
           </div>
 
@@ -214,7 +246,7 @@ export default async function JobDetailPage({ params }: Props) {
                 Lamar sekarang sebelum lowongan ditutup.
               </p>
             </div>
-            <ApplyButton jobId={job.id} />
+            <ApplyButton jobSlug={job.slug} />
           </div>
         </div>
 
@@ -229,10 +261,10 @@ export default async function JobDetailPage({ params }: Props) {
               </div>
               <div>
                 <p className="font-medium text-white">{job.company}</p>
-                <p className="text-sm text-gray-400">{job.category}</p>
+                <p className="text-sm text-gray-400">{job.category || "General"}</p>
               </div>
             </div>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm pb-2">
               <div className="flex items-center gap-2 text-gray-400">
                 <MapPin className="w-4 h-4 text-gray-500" />
                 {job.location}
@@ -242,6 +274,13 @@ export default async function JobDetailPage({ params }: Props) {
                 {job.type}
               </div>
             </div>
+            {job.companyRelation?.slug && (
+              <Link href={`/companies/${job.companyRelation.slug}`} className="block">
+                <Button variant="outline" size="sm" className="w-full border-white/15 text-gray-300 hover:bg-white/10">
+                  Lihat Profil Perusahaan
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Job info summary */}
@@ -249,7 +288,7 @@ export default async function JobDetailPage({ params }: Props) {
             <h3 className="font-semibold text-white">Ringkasan Posisi</h3>
             <div className="space-y-3 text-sm">
               {[
-                { label: "Kategori", value: job.category },
+                { label: "Kategori", value: job.category || "General" },
                 { label: "Tipe Pekerjaan", value: job.type },
                 { label: "Pengalaman", value: job.experience },
                 { label: "Pendidikan", value: job.education },
@@ -273,7 +312,7 @@ export default async function JobDetailPage({ params }: Props) {
                 {relatedJobs.map((related) => (
                   <Link
                     key={related.id}
-                    href={`/career/${related.id}`}
+                    href={`/jobs/${related.slug}`}
                     className="block border border-white/10 rounded-lg p-3 hover:bg-white/10 hover:border-white/20 transition-all"
                   >
                     <p className="text-sm font-medium text-white hover:text-primary transition-colors line-clamp-1">
@@ -293,7 +332,7 @@ export default async function JobDetailPage({ params }: Props) {
                   </Link>
                 ))}
               </div>
-              <Link href="/career">
+              <Link href="/jobs">
                 <Button
                   variant="outline"
                   size="sm"

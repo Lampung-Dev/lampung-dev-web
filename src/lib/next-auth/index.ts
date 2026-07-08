@@ -31,7 +31,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         email: params.session.user.email,
                         picture: params.session.user.image!,
                         passwordHash: null,
-                        title: null
+                        title: null,
+                        companyId: null
                     })
 
                     await creatSessionService({

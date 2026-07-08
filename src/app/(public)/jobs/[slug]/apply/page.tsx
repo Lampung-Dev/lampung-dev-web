@@ -2,37 +2,57 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Briefcase, Building2, MapPin } from "lucide-react";
-import { JOBS_DATA } from "../../_data/jobs";
+import { getJobBySlugService, getAllJobsService } from "@/services/job";
+import { getRelativeTime } from "@/lib/date";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/next-auth";
+import { getUserByEmailService } from "@/services/user";
 import { ApplyForm } from "./_components/apply-form";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return JOBS_DATA.map((job) => ({ id: String(job.id) }));
+  const { jobs } = await getAllJobsService({ onlyActive: true, limit: 50 });
+  return jobs.map((job) => ({ slug: job.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const job = JOBS_DATA.find((j) => j.id === Number(id));
+  const { slug } = await params;
+  const job = await getJobBySlugService(slug);
   if (!job) return { title: "Lowongan Tidak Ditemukan" };
   return {
-    title: `Lamar – ${job.title} | Lampung Dev Career`,
+    title: `Lamar – ${job.title} | Lampung Dev Jobs`,
   };
 }
 
 export default async function ApplyPage({ params }: Props) {
-  const { id } = await params;
-  const job = JOBS_DATA.find((j) => j.id === Number(id));
+  const { slug } = await params;
+  const session = await auth();
+  if (!session?.user?.email) {
+    redirect(`/login?callbackUrl=/jobs/${slug}/apply`);
+  }
 
-  if (!job) notFound();
+  const user = await getUserByEmailService(session.user.email);
+  if (!user) redirect("/login");
+
+  const dbJob = await getJobBySlugService(slug);
+  if (!dbJob) notFound();
+
+  const job = {
+    ...dbJob,
+    id: dbJob.id as unknown as number,
+    type: dbJob.type as "Penuh Waktu" | "Paruh Waktu" | "Magang" | "Remote",
+    category: dbJob.category || "",
+    postedAt: getRelativeTime(dbJob.createdAt),
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-16">
       {/* Back */}
       <Link
-        href={`/career/${job.id}`}
+        href={`/jobs/${job.slug}`}
         className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -67,7 +87,7 @@ export default async function ApplyPage({ params }: Props) {
       </div>
 
       {/* Form */}
-      <ApplyForm job={job} />
+      <ApplyForm job={job} initialUser={user} />
     </div>
   );
 }

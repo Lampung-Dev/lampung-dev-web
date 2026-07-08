@@ -137,14 +137,29 @@ const navigations: TNavigation[] = [
         url: "/jobs/available",
       },
       {
+        title: "Company Profile",
+        url: "/dashboard/company-profile",
+        companyOnly: true,
+      },
+      {
+        title: "Manage Partners",
+        url: "/dashboard/companies",
+        adminOnly: true,
+      },
+      {
+        title: "Manage Categories",
+        url: "/dashboard/job-categories",
+        adminOnly: true,
+      },
+      {
         title: "Manage Jobs",
         url: "/jobs/post",
-        adminOnly: true,
+        mitraOrAdminOnly: true,
       },
       {
         title: "Applications",
         url: "/jobs/applications",
-        adminOnly: true,
+        mitraOrAdminOnly: true,
       },
     ],
   },
@@ -170,10 +185,19 @@ const navigations: TNavigation[] = [
 
 
 export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: User }) {
+  const isMitraOrAdmin = user?.role === "ADMIN" || user?.role === "MITRA";
+  const hasCompany = !!user?.companyId;
+
   const filteredNavigations = navigations
     .filter((nav) => {
       if (nav.adminOnly) {
         return user?.role === "ADMIN";
+      }
+      if (nav.mitraOrAdminOnly) {
+        return isMitraOrAdmin;
+      }
+      if (nav.companyOnly) {
+        return hasCompany;
       }
       return true;
     })
@@ -182,6 +206,12 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
       items: nav.items?.filter((item) => {
         if (item.adminOnly) {
           return user?.role === "ADMIN";
+        }
+        if (item.mitraOrAdminOnly) {
+          return isMitraOrAdmin;
+        }
+        if (item.companyOnly) {
+          return hasCompany;
         }
         return true;
       }),

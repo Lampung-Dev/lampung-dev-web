@@ -1,0 +1,1 @@
+ALTER TABLE "job" ALTER COLUMN "category" DROP NOT NULL;

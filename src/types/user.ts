@@ -3,12 +3,33 @@ import { TUser } from "@/lib/database/schema";
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BANNED';
 export type UserRole = 'ADMIN' | 'MODERATOR' | 'USER';
 
-export type TNewUser = Omit<TUser, 'id' | 'role' | 'status' | 'createdAt' | 'updatedAt'> & {
+export type TNewUser = Omit<
+    TUser,
+    | 'id'
+    | 'role'
+    | 'status'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'passwordHash'
+    | 'title'
+    | 'companyId'
+    | 'latitude'
+    | 'longitude'
+    | 'locationName'
+    | 'employmentStatus'
+> & {
     id?: TUser['id'];
     role?: TUser['role'];
     status?: TUser['status'];
     createdAt?: TUser['createdAt'];
     updatedAt?: TUser['updatedAt'];
+    passwordHash?: TUser['passwordHash'];
+    title?: TUser['title'];
+    companyId?: TUser['companyId'];
+    latitude?: TUser['latitude'];
+    longitude?: TUser['longitude'];
+    locationName?: TUser['locationName'];
+    employmentStatus?: TUser['employmentStatus'];
 }
 export type UserProfile = {
     name: string;
