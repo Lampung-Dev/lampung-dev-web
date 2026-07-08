@@ -14,8 +14,13 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const { jobs } = await getAllJobsService({ onlyActive: true, limit: 50 });
-  return jobs.map((job) => ({ slug: job.slug }));
+  try {
+    const { jobs } = await getAllJobsService({ onlyActive: true, limit: 50 });
+    return jobs.map((job) => ({ slug: job.slug }));
+  } catch (error) {
+    console.warn("WARNING: generateStaticParams failed to fetch jobs from DB. Returning empty array for build.", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
