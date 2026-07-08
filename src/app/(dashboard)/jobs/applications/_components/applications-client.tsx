@@ -21,7 +21,6 @@ import { updateApplicationStatusAction } from "@/actions/companies/company-actio
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -200,31 +199,34 @@ function DetailDialog({
 
   return (
     <Dialog open={!!app} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-black/95 border-white/10 text-white">
         <DialogHeader>
-          <DialogTitle>Detail Lamaran</DialogTitle>
-          <DialogDescription>
-            ID: <span className="font-mono text-xs">{app.id}</span>
+          <DialogTitle className="text-xl font-bold">Detail Lamaran</DialogTitle>
+          <DialogDescription className="text-gray-400">
+            ID: <span className="font-mono text-xs text-primary">{app.id}</span>
           </DialogDescription>
         </DialogHeader>
 
         {/* Status + change */}
-        <div className="flex items-center justify-between gap-3">
-          <Badge variant="outline" className={STATUS_CONFIG[app.status].className}>
-            {STATUS_CONFIG[app.status].label}
-          </Badge>
+        <div className="flex items-center justify-between gap-3 bg-white/5 p-3 rounded-lg border border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Status:</span>
+            <Badge variant="outline" className={STATUS_CONFIG[app.status].className}>
+              {STATUS_CONFIG[app.status].label}
+            </Badge>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
+              <Button variant="outline" size="sm" className="gap-1 border-white/20 text-gray-300 hover:bg-white/10">
                 Ubah Status <ChevronDown className="w-3 h-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="bg-black/95 border-white/10 text-white">
               {STATUS_OPTIONS.map((s) => (
                 <DropdownMenuItem
                   key={s}
                   onClick={() => onStatusChange(app.id, s)}
-                  className={app.status === s ? "font-semibold" : ""}
+                  className={`hover:bg-white/10 ${app.status === s ? "font-semibold text-primary" : ""}`}
                 >
                   {STATUS_CONFIG[s].label}
                 </DropdownMenuItem>
@@ -233,97 +235,103 @@ function DetailDialog({
           </DropdownMenu>
         </div>
 
-        <Separator />
-
-        {/* Job info */}
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Posisi Dilamar</p>
-          <p className="font-semibold">{app.jobTitle}</p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            <Building2 className="w-3.5 h-3.5" />{app.company}
-          </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" />{app.location}
-          </p>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Clock className="w-3 h-3" />{formatDate(app.submittedAt)}
-          </p>
-        </div>
-
-        <Separator />
-
-        {/* Applicant */}
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Data Pelamar</p>
-          <p className="font-semibold">{app.applicant.fullName}</p>
-          {app.applicant.locationName && (
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-primary" />{app.applicant.locationName}
-              {distance !== null && (
-                <Badge variant="outline" className="ml-2 text-xs border-primary/40 text-primary">
-                  {formatDistance(distance)}
-                </Badge>
-              )}
-            </p>
-          )}
-          {[
-            { icon: Mail, text: app.applicant.email },
-            { icon: Phone, text: app.applicant.phone },
-            ...(app.applicant.linkedin ? [{ icon: Linkedin, text: app.applicant.linkedin }] : []),
-            ...(app.applicant.portfolio ? [{ icon: Globe, text: app.applicant.portfolio }] : []),
-          ].map(({ icon: Icon, text }, i) => (
-            <p key={i} className="text-sm text-muted-foreground flex items-center gap-1.5">
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              <a href={text.startsWith("http") ? text : `mailto:${text}`} target="_blank" rel="noopener noreferrer"
-                className="hover:text-foreground truncate">{text}</a>
-            </p>
-          ))}
-        </div>
-
-        <Separator />
-
-        {/* Application detail */}
-        <div className="space-y-3">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Detail Lamaran</p>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            {[
-              { label: "Ekspektasi Gaji", value: app.application.expectedSalary || "—" },
-              { label: "Ketersediaan", value: app.application.availability },
-            ].map(({ label, value }) => (
-              <div key={label}>
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="font-medium">{value}</p>
-              </div>
-            ))}
-          </div>
-          {app.application.resumeUrl && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Resume / CV</p>
-              <a href={app.application.resumeUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <FileText className="w-3.5 h-3.5" />
-                Lihat CV
-              </a>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+          {/* Left Column: Job & Applicant Info */}
+          <div className="space-y-5">
+            {/* Job info */}
+            <div className="space-y-2 bg-white/5 p-4 rounded-lg border border-white/5">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Posisi Dilamar</p>
+              <p className="font-bold text-base text-primary leading-snug">{app.jobTitle}</p>
+              <p className="text-sm text-gray-300 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-muted-foreground" />{app.company}
+              </p>
+              <p className="text-sm text-gray-300 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-muted-foreground" />{app.location}
+              </p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
+                <Clock className="w-3.5 h-3.5" />{formatDate(app.submittedAt)}
+              </p>
             </div>
-          )}
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Cover Letter</p>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap bg-muted/40 rounded-lg p-3">
-              {app.application.coverLetter}
-            </p>
+
+            {/* Applicant */}
+            <div className="space-y-3 bg-white/5 p-4 rounded-lg border border-white/5">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Data Pelamar</p>
+              <p className="font-bold text-lg">{app.applicant.fullName}</p>
+              
+              {/* FIXED: Changed p to div to fix DOM nesting warning */}
+              {app.applicant.locationName && (
+                <div className="text-sm text-gray-300 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-primary shrink-0" />
+                  <span className="truncate">{app.applicant.locationName}</span>
+                  {distance !== null && (
+                    <Badge variant="outline" className="ml-2 text-[10px] py-0 px-1.5 border-primary/40 text-primary shrink-0">
+                      {formatDistance(distance)}
+                    </Badge>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2 pt-1">
+                {[
+                  { icon: Mail, text: app.applicant.email },
+                  { icon: Phone, text: app.applicant.phone },
+                  ...(app.applicant.linkedin ? [{ icon: Linkedin, text: app.applicant.linkedin }] : []),
+                  ...(app.applicant.portfolio ? [{ icon: Globe, text: app.applicant.portfolio }] : []),
+                ].map(({ icon: Icon, text }, i) => (
+                  <div key={i} className="text-sm text-gray-300 flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <a href={text.startsWith("http") ? text : `mailto:${text}`} target="_blank" rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors truncate max-w-full">{text}</a>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Availability & Salary */}
+            <div className="grid grid-cols-2 gap-3 bg-white/5 p-4 rounded-lg border border-white/5 text-sm">
+              {[
+                { label: "Ekspektasi Gaji", value: app.application.expectedSalary || "—" },
+                { label: "Ketersediaan", value: app.application.availability },
+              ].map(({ label, value }) => (
+                <div key={label} className="space-y-0.5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{label}</p>
+                  <p className="font-semibold text-gray-100">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column: Resume & Cover Letter */}
+          <div className="space-y-5 flex flex-col h-full">
+            {app.application.resumeUrl && (
+              <div className="bg-white/5 p-4 rounded-lg border border-white/5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">Resume / CV</p>
+                <a href={app.application.resumeUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline bg-primary/10 border border-primary/20 rounded-lg px-4 py-2 hover:bg-primary/20 transition-colors w-full justify-center">
+                  <FileText className="w-4 h-4" />
+                  Lihat & Unduh CV
+                </a>
+              </div>
+            )}
+
+            <div className="bg-white/5 p-4 rounded-lg border border-white/5 flex-1 flex flex-col min-h-[180px]">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">Cover Letter</p>
+              <div className="text-sm leading-relaxed text-gray-300 whitespace-pre-wrap bg-white/5 border border-white/10 rounded-lg p-3 overflow-y-auto max-h-[220px] flex-1">
+                {app.application.coverLetter}
+              </div>
+            </div>
+
+            {/* Map button */}
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-white/20 text-gray-300 hover:bg-white/10 hover:text-white py-5"
+              onClick={() => onShowMap(app)}
+            >
+              <MapPin className="w-4 h-4 text-primary" />
+              Lihat Rute / Lokasi di Peta
+            </Button>
           </div>
         </div>
-
-        {/* Map button */}
-        <Separator />
-        <Button
-          variant="outline"
-          className="w-full gap-2"
-          onClick={() => onShowMap(app)}
-        >
-          <MapPin className="w-4 h-4" />
-          Lihat Lokasi di Peta
-        </Button>
       </DialogContent>
     </Dialog>
   );
