@@ -1,1 +1,1 @@
-ALTER TABLE "event" ADD COLUMN "location_map_url" text;
+ALTER TABLE "event" ADD COLUMN IF NOT EXISTS "location_map_url" text;
