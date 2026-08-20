@@ -47,11 +47,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         sessionId: existingSession?.id as string
                     })
 
-                    // Add role to session user
+                    // Add role and companyId to session user
                     if (params.session.user) {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-expect-error
                         params.session.user.role = existingUser.role;
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
+                        params.session.user.companyId = existingUser.companyId;
                     }
                 }
 
