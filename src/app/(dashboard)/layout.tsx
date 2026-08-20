@@ -12,18 +12,16 @@ import BreadCrumbDashboard from "./__components/bread-crumb-dashboard";
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const session = await auth();
 
-    if (!session) {
+    if (!session || !session.user) {
         redirect('/login');
     }
 
     const user = {
-        name: session.user?.name as string,
-        email: session.user?.email as string,
-        avatar: session.user?.image as string,
-        // @ts-expect-error - next-auth types don't include custom role field
-        role: session.user?.role as string,
-        // @ts-expect-error - next-auth types don't include custom companyId field
-        companyId: session.user?.companyId as string | undefined,
+        name: session.user.name as string,
+        email: session.user.email as string,
+        avatar: session.user.image as string,
+        role: session.user.role as string,
+        companyId: session.user.companyId as string | undefined,
     };
 
     return (
@@ -47,4 +45,3 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
     );
 }
-

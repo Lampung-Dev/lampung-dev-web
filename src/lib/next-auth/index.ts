@@ -62,10 +62,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 // If user was deleted or is banned, do NOT recreate them!
                 if (!existingUser || existingUser.status === "BANNED") {
                     // Invalidate user from session
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    params.session.user = null;
-                    return params.session;
+                    return {
+                        ...params.session,
+                        user: undefined as unknown as typeof params.session.user,
+                    };
                 }
 
                 const existingSession = await getSessionByUserIdService(existingUser.id as string);
@@ -79,14 +79,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
                 // Add id, role, and companyId to session user
                 if (params.session.user) {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
                     params.session.user.id = existingUser.id;
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
                     params.session.user.role = existingUser.role;
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
                     params.session.user.companyId = existingUser.companyId;
                 }
 
