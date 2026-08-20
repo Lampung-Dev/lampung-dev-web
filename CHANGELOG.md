@@ -1,3 +1,9 @@
+## [1.6.2] - 2026-08-20
+
+### What's Changed
+
+- Test auto-deployment pipeline with version 1.6.2
+
 ## [1.6.0] - 2026-08-20
 
 ### What's Changed
