@@ -8,11 +8,13 @@ export type TNavigation = {
     adminOnly?: boolean;
     mitraOrAdminOnly?: boolean;
     companyOnly?: boolean;
+    roles?: ('ADMIN' | 'MODERATOR' | 'USER' | 'MITRA')[];
     items?: {
-        title: string
-        url: string
-        adminOnly?: boolean
-        mitraOrAdminOnly?: boolean
-        companyOnly?: boolean
-    }[]
-}
+        title: string;
+        url: string;
+        adminOnly?: boolean;
+        mitraOrAdminOnly?: boolean;
+        companyOnly?: boolean;
+        roles?: ('ADMIN' | 'MODERATOR' | 'USER' | 'MITRA')[];
+    }[];
+};

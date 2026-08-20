@@ -128,7 +128,7 @@ git push origin your-branch-name
 
 ### 9. Open a Pull Request
 
-Submit a pull request to the `development` branch and wait for review.
+Submit a pull request to the `development` branch (or `main` as appropriate) and wait for review. Please make sure all PR checklist items are completed.
 
 ---
 
@@ -144,6 +144,18 @@ To contribute:
 4. Submit your PR and we’ll review it together.
 
 For major changes, open an issue first to discuss the idea.
+
+### 📌 Versioning & Changelog Policy
+
+This project strictly follows [Semantic Versioning (SemVer)](https://semver.org/):
+
+- **Patch** (`x.x.+1`): Bug fixes, minor UI/styling tweaks, small refactors.
+- **Minor** (`x.+1.0`): New features, new pages, notable enhancements.
+- **Major** (`+1.0.0`): Major breaking changes or complete redesigns.
+
+**Requirements for Pull Requests targeting `main`:**
+1. Bump the `version` field in `package.json` according to the SemVer rules above.
+2. Document all changes in `CHANGELOG.md` under a new version heading (following the existing format).
 
 ---
 

@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    pull_policy: always
     container_name: lampungdev-web
     ports:
       - "3050:3050"

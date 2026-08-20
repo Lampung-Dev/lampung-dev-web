@@ -5,14 +5,22 @@ export const getAllUserPagination = async ({
     page = 1,
     limit = 10,
     orderBy = 'createdAt',
-    order = 'asc'
+    order = 'asc',
+    search,
+    status,
+    role,
+    onlyActive = false,
 }: GetAllUsersParams = {}): Promise<PaginatedUsersResponse> => {
     try {
         const users = await getAllUsersService({
             page,
             limit,
             orderBy,
-            order
+            order,
+            search,
+            status,
+            role,
+            onlyActive,
         });
 
         return users;

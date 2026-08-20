@@ -20,48 +20,75 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         }),
     ],
     callbacks: {
-        async session(params) {
+        async signIn({ user }) {
             try {
-                const existingUser = await getUserByEmailService(params.session.user.email)
+                if (!user?.email) return false;
+
+                const existingUser = await getUserByEmailService(user.email);
 
                 if (!existingUser) {
-                    // If user doesn't exist, create a new user
+                    // Create new user ONLY during actual login
                     const [newUser] = await createUserService({
-                        name: params.session.user.name!,
-                        email: params.session.user.email,
-                        picture: params.session.user.image!,
+                        name: user.name || "Anonymous Member",
+                        email: user.email,
+                        picture: user.image || "/images/placeholder-image.jpeg",
                         passwordHash: null,
                         title: null,
-                        companyId: null
-                    })
+                        companyId: null,
+                    });
 
                     await creatSessionService({
                         userId: newUser.id,
-                        expiresAt: new Date(params.session.expires),
-                    })
-                } else {
-                    const existingSession = await getSessionByUserIdService(existingUser.id as string)
-
-                    await updateSessionService({
-                        expiresAt: new Date(params.session.expires),
-                        sessionId: existingSession?.id as string
-                    })
-
-                    // Add role to session user
-                    if (params.session.user) {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error
-                        params.session.user.role = existingUser.role;
-                    }
+                        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                    });
+                } else if (existingUser.status === "BANNED") {
+                    return false;
                 }
 
-                return params.session
+                return true;
+            } catch (error) {
+                console.error("Error in signIn callback:", error);
+                return false;
+            }
+        },
+        async session(params) {
+            try {
+                if (!params.session?.user?.email) {
+                    return params.session;
+                }
 
+                const existingUser = await getUserByEmailService(params.session.user.email);
+
+                // If user was deleted or is banned, do NOT recreate them!
+                if (!existingUser || existingUser.status === "BANNED") {
+                    // Invalidate user from session
+                    return {
+                        ...params.session,
+                        user: undefined as unknown as typeof params.session.user,
+                    };
+                }
+
+                const existingSession = await getSessionByUserIdService(existingUser.id as string);
+
+                if (existingSession) {
+                    await updateSessionService({
+                        expiresAt: new Date(params.session.expires),
+                        sessionId: existingSession.id as string,
+                    });
+                }
+
+                // Add id, role, and companyId to session user
+                if (params.session.user) {
+                    params.session.user.id = existingUser.id;
+                    params.session.user.role = existingUser.role;
+                    params.session.user.companyId = existingUser.companyId;
+                }
+
+                return params.session;
             } catch (error) {
                 console.error("Error in session callback:", error);
-                throw error;
+                return params.session;
             }
-        }
-
+        },
     },
 });

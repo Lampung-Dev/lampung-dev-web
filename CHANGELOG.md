@@ -1,3 +1,18 @@
+## [1.6.2] - 2026-08-20
+
+### What's Changed
+
+- Test auto-deployment pipeline with version 1.6.2
+
+## [1.6.0] - 2026-08-20
+
+### What's Changed
+
+- Display current application version in the footer UI linking to `CHANGELOG.md` ([#74](https://github.com/Lampung-Dev/lampung-dev-web/issues/74))
+- Establish SemVer version bumping policy & workflow in `README.md`
+- Add GitHub Pull Request template with SemVer and CHANGELOG checklist
+- Configure `pull_policy: always` in `docker-compose.yaml` to ensure latest Docker image is pulled during deployments
+
 ## [1.5.2] - 2025-07-20
 
 ### What's Changed

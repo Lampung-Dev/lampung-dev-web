@@ -14,6 +14,8 @@ interface CustomPaginationProps {
     hasPreviousPage: boolean;
     hasNextPage: boolean;
     baseUrl?: string;
+    searchParams?: Record<string, string | number | undefined>;
+    scroll?: boolean;
 }
 
 export const CustomPagination = ({
@@ -22,9 +24,19 @@ export const CustomPagination = ({
     hasPreviousPage,
     hasNextPage,
     baseUrl = "",
+    searchParams = {},
+    scroll = false,
 }: CustomPaginationProps) => {
     const getPageUrl = (pageNum: number) => {
-        return `${baseUrl}?page=${pageNum}`;
+        const params = new URLSearchParams();
+        Object.entries(searchParams).forEach(([key, val]) => {
+            if (val !== undefined && val !== "" && key !== "page") {
+                params.set(key, String(val));
+            }
+        });
+        params.set("page", String(pageNum));
+        const qs = params.toString();
+        return qs ? `${baseUrl}?${qs}` : `${baseUrl}?page=${pageNum}`;
     };
 
     return (
@@ -32,7 +44,7 @@ export const CustomPagination = ({
             <PaginationContent className="flex flex-wrap gap-2 justify-center">
                 {hasPreviousPage && (
                     <PaginationItem>
-                        <PaginationPrevious href={getPageUrl(currentPage - 1)} />
+                        <PaginationPrevious href={getPageUrl(currentPage - 1)} scroll={scroll} />
                     </PaginationItem>
                 )}
 
@@ -47,6 +59,7 @@ export const CustomPagination = ({
                                 <PaginationLink
                                     href={getPageUrl(pageNum)}
                                     isActive={pageNum === currentPage}
+                                    scroll={scroll}
                                 >
                                     {pageNum}
                                 </PaginationLink>
@@ -67,7 +80,7 @@ export const CustomPagination = ({
 
                 {hasNextPage && (
                     <PaginationItem>
-                        <PaginationNext href={getPageUrl(currentPage + 1)} />
+                        <PaginationNext href={getPageUrl(currentPage + 1)} scroll={scroll} />
                     </PaginationItem>
                 )}
             </PaginationContent>

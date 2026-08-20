@@ -59,8 +59,12 @@ export type SocialMediaLink = {
 export type GetAllUsersParams = {
     page?: number;
     limit?: number;
-    orderBy?: 'createdAt' | 'name';
+    orderBy?: 'createdAt' | 'name' | 'email' | 'id';
     order?: 'asc' | 'desc';
+    search?: string;
+    status?: UserStatus;
+    role?: UserRole;
+    onlyActive?: boolean;
 }
 
 export type PaginatedUsersResponse = {

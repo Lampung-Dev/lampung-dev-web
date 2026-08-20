@@ -17,7 +17,15 @@ const LoadingMemberCard = () => (
 export default function LoadingMembers() {
     return (
         <div className="space-y-8">
-            <h1 className="text-2xl md:text-3xl font-bold">Our Members</h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold">Our Members</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Daftar seluruh anggota aktif komunitas Lampung Dev.
+                    </p>
+                </div>
+                <div className="w-full max-w-md h-10 bg-white/5 border border-white/20 rounded-md animate-pulse" />
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                 {Array.from({ length: 8 }).map((_, i) => (
