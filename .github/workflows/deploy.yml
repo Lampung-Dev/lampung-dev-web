@@ -45,6 +45,7 @@ jobs:
       - name: Trigger Coolify Deployment
         env:
           COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
           if [ -z "$COOLIFY_WEBHOOK_URL" ]; then
             echo "::error::COOLIFY_WEBHOOK_URL is not configured for this environment. Deployment failed."
@@ -52,7 +53,14 @@ jobs:
           fi
 
           echo "Triggering Coolify deployment..."
-          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X GET "$COOLIFY_WEBHOOK_URL")
+          
+          # Prepare Authorization header if COOLIFY_TOKEN is provided
+          AUTH_HEADER=()
+          if [ -n "$COOLIFY_TOKEN" ]; then
+            AUTH_HEADER=(-H "Authorization: Bearer $COOLIFY_TOKEN")
+          fi
+
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" "${AUTH_HEADER[@]}" -X GET "$COOLIFY_WEBHOOK_URL")
           HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
           BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
 
