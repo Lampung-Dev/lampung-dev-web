@@ -8,7 +8,6 @@ import {
   CalendarDays,
   LayoutDashboard,
   Rocket,
-  // Settings2,
   SquareUserRound,
   Banknote,
   Heart
@@ -29,6 +28,7 @@ import { AvatarImage } from "@radix-ui/react-avatar"
 
 type User = {
   role?: string;
+  companyId?: string | null;
   [key: string]: unknown;
 }
 
@@ -50,6 +50,7 @@ const navigations: TNavigation[] = [
       {
         title: "Members",
         url: "/users/members",
+        adminOnly: true,
       },
     ]
   },
@@ -108,25 +109,6 @@ const navigations: TNavigation[] = [
       },
     ],
   },
-  // {
-  //   title: "Admin Panel",
-  //   url: "/dashboard/admin",
-  //   icon: Settings2,
-  //   items: [
-  //     {
-  //       title: "Member Management",
-  //       url: "/dashboard/admin/members",
-  //     },
-  //     {
-  //       title: "Content Moderation",
-  //       url: "/dashboard/admin/moderation",
-  //     },
-  //     {
-  //       title: "Analytics",
-  //       url: "/dashboard/admin/analytics",
-  //     },
-  //   ],
-  // },
   {
     title: "Job Board",
     url: "/jobs",
@@ -139,7 +121,7 @@ const navigations: TNavigation[] = [
       {
         title: "Company Profile",
         url: "/dashboard/company-profile",
-        companyOnly: true,
+        mitraOrAdminOnly: true,
       },
       {
         title: "Manage Partners",
@@ -183,39 +165,42 @@ const navigations: TNavigation[] = [
   },
 ];
 
-
 export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: User }) {
-  const isMitraOrAdmin = user?.role === "ADMIN" || user?.role === "MITRA";
-  const hasCompany = !!user?.companyId;
+  const role = user?.role || "USER";
+  const isAdmin = role === "ADMIN";
+  const isMitra = role === "MITRA";
+  const isMitraOrAdmin = isAdmin || isMitra;
+  const hasCompany = !!user?.companyId || isMitra;
+
+  const hasAccess = (item: {
+    adminOnly?: boolean;
+    mitraOrAdminOnly?: boolean;
+    companyOnly?: boolean;
+    roles?: ('ADMIN' | 'MODERATOR' | 'USER' | 'MITRA')[];
+  }) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.mitraOrAdminOnly && !isMitraOrAdmin) return false;
+    if (item.companyOnly && !hasCompany) return false;
+    if (item.roles && !item.roles.includes(role as 'ADMIN' | 'MODERATOR' | 'USER' | 'MITRA')) return false;
+    return true;
+  };
 
   const filteredNavigations = navigations
+    .filter((nav) => hasAccess(nav))
+    .map((nav) => {
+      if (!nav.items) return nav;
+      return {
+        ...nav,
+        items: nav.items.filter((item) => hasAccess(item)),
+      };
+    })
     .filter((nav) => {
-      if (nav.adminOnly) {
-        return user?.role === "ADMIN";
-      }
-      if (nav.mitraOrAdminOnly) {
-        return isMitraOrAdmin;
-      }
-      if (nav.companyOnly) {
-        return hasCompany;
+      // If a section originally had sub-items, but after filtering all of them are hidden, hide the section
+      if (nav.items && nav.items.length === 0) {
+        return false;
       }
       return true;
-    })
-    .map((nav) => ({
-      ...nav,
-      items: nav.items?.filter((item) => {
-        if (item.adminOnly) {
-          return user?.role === "ADMIN";
-        }
-        if (item.mitraOrAdminOnly) {
-          return isMitraOrAdmin;
-        }
-        if (item.companyOnly) {
-          return hasCompany;
-        }
-        return true;
-      }),
-    }));
+    });
 
   return (
     <Sidebar collapsible="icon" user={user} {...props}>

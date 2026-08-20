@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
+import { Users as UsersIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +10,8 @@ import { getAllUserPagination } from "@/actions/users/get-all-users";
 import AvatarClient from "../_components/avatar-client";
 import { CustomPagination } from "@/components/custom-pagination";
 import { truncateString } from "@/lib/utils";
+import { MembersSearch } from "./_components/members-search";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata: Metadata = {
     title: "Members",
@@ -90,8 +93,12 @@ export default async function Members({
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    const paramPage = (await searchParams).page;
-    const page = typeof paramPage === "string" ? parseInt(paramPage) : 1;
+    const resolvedParams = await searchParams;
+    const paramPage = resolvedParams.page;
+    const paramSearch = resolvedParams.search || resolvedParams.q;
+
+    const page = typeof paramPage === "string" ? parseInt(paramPage) || 1 : 1;
+    const search = typeof paramSearch === "string" ? paramSearch.trim() : undefined;
     const limit = 8;
 
     const response = await getAllUserPagination({
@@ -99,6 +106,8 @@ export default async function Members({
         limit,
         orderBy: "createdAt",
         order: "asc",
+        search,
+        onlyActive: true,
     });
 
     if (!response) {
@@ -109,46 +118,70 @@ export default async function Members({
 
     return (
         <div className="space-y-8">
-            <h1 className="text-2xl md:text-3xl font-bold">Our Members</h1>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-                {users.map((user, i) => (
-                    <MemberCard
-                        key={user.id}
-                        member={{
-                            image:
-                                user.picture ||
-                                "/images/placeholder-image.jpeg",
-                            name: user.name || "Anonymous Member",
-                            title: user.title || "Member",
-                            social_media: user.socialMedia.map((link) => ({
-                                platform: `/icons/${link.platform.toLowerCase()}.svg`,
-                                url: link.link,
-                            })),
-                        }}
-                        index={i}
-                    />
-                ))}
-
-                {users.length < limit && (
-                    <div className="w-full border border-white hidden sm:flex flex-col justify-center items-center p-6 rounded-lg backdrop-blur-sm bg-green-500/10">
-                        <Avatar className="w-24 h-24 lg:w-28 lg:h-28 border-4 border-primary">
-                            <AvatarImage src="/images/placeholder-image.jpeg" />
-                        </Avatar>
-                        <p className="mt-4 text-lg font-medium">
-                            New Member Soon
-                        </p>
-                        <div className="mt-4 h-8" />
-                    </div>
-                )}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold">Our Members</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Daftar seluruh anggota aktif komunitas Lampung Dev.
+                    </p>
+                </div>
+                <MembersSearch initialSearch={search ?? ""} />
             </div>
 
-            <CustomPagination
-                currentPage={page}
-                totalPages={metadata.totalPages}
-                hasPreviousPage={metadata.hasPreviousPage}
-                hasNextPage={metadata.hasNextPage}
-            />
+            {users.length === 0 ? (
+                <EmptyState
+                    icon={UsersIcon}
+                    title="Tidak ada anggota ditemukan"
+                    description={
+                        search
+                            ? `Tidak ada anggota yang cocok dengan kata kunci "${search}". Coba cari dengan nama atau title lain.`
+                            : "Belum ada anggota aktif yang terdaftar."
+                    }
+                />
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                    {users.map((user, i) => (
+                        <MemberCard
+                            key={user.id}
+                            member={{
+                                image:
+                                    user.picture ||
+                                    "/images/placeholder-image.jpeg",
+                                name: user.name || "Anonymous Member",
+                                title: user.title || "Member",
+                                social_media: user.socialMedia.map((link) => ({
+                                    platform: `/icons/${link.platform.toLowerCase()}.svg`,
+                                    url: link.link,
+                                })),
+                            }}
+                            index={i}
+                        />
+                    ))}
+
+                    {users.length < limit && !search && (
+                        <div className="w-full border border-white hidden sm:flex flex-col justify-center items-center p-6 rounded-lg backdrop-blur-sm bg-green-500/10">
+                            <Avatar className="w-24 h-24 lg:w-28 lg:h-28 border-4 border-primary">
+                                <AvatarImage src="/images/placeholder-image.jpeg" />
+                            </Avatar>
+                            <p className="mt-4 text-lg font-medium">
+                                New Member Soon
+                            </p>
+                            <div className="mt-4 h-8" />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {metadata.totalPages > 1 && (
+                <CustomPagination
+                    currentPage={page}
+                    totalPages={metadata.totalPages}
+                    hasPreviousPage={metadata.hasPreviousPage}
+                    hasNextPage={metadata.hasNextPage}
+                    baseUrl="/members"
+                    searchParams={{ search }}
+                />
+            )}
         </div>
     );
 }

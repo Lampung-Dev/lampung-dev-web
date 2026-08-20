@@ -6,6 +6,7 @@ import { getUserByEmailService } from '@/services/user';
 import ProfileForm from '../../__components/profile-form';
 import ProfilePicture from '../../__components/profile-picture';
 import { MobilePasswordForm } from './_components/mobile-password-form';
+import { DeleteAccountSection } from './_components/delete-account-section';
 
 export default async function Page() {
     const session = await auth();
@@ -55,6 +56,10 @@ export default async function Page() {
                             <MobilePasswordForm hasPasswordSet={!!user.hasPassword} />
                         </div>
                     )}
+
+                    <div className="pt-4 border-t border-primary/10">
+                        <DeleteAccountSection />
+                    </div>
                 </div>
             </div>
         </div>

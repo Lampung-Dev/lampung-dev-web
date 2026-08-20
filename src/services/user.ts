@@ -1,9 +1,18 @@
 import 'server-only'
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 
 import db from "@/lib/database";
 import { GetAllUsersParams, PaginatedUsersResponse, TNewUser } from "@/types/user";
-import { userTable } from "@/lib/database/schema";
+import {
+    userTable,
+    sessionTable,
+    socialMediaTable,
+    eventTable,
+    eventRegistrationTable,
+    eventTransactionTable,
+    jobTable,
+    jobApplicationTable,
+} from "@/lib/database/schema";
 import { getSocialMediaService } from './social-media';
 
 export const createUserService = async (values: TNewUser) => {
@@ -199,21 +208,77 @@ export const updateUserStatusService = async (
     }
 }
 
+export const deleteUserService = async (userId: string): Promise<boolean> => {
+    try {
+        return await db.transaction(async (tx) => {
+            // 1. Delete user sessions
+            await tx.delete(sessionTable).where(eq(sessionTable.userId, userId));
+
+            // 2. Delete user social media links
+            await tx.delete(socialMediaTable).where(eq(socialMediaTable.userId, userId));
+
+            // 3. Delete event registrations & transactions
+            await tx.delete(eventRegistrationTable).where(eq(eventRegistrationTable.userId, userId));
+            await tx.delete(eventTransactionTable).where(eq(eventTransactionTable.userId, userId));
+
+            // 4. Delete job applications
+            await tx.delete(jobApplicationTable).where(eq(jobApplicationTable.userId, userId));
+
+            // 5. Unlink user from created events and jobs
+            await tx.update(eventTable).set({ createdBy: null }).where(eq(eventTable.createdBy, userId));
+            await tx.update(jobTable).set({ createdBy: null }).where(eq(jobTable.createdBy, userId));
+
+            // 6. Delete user record
+            const deleted = await tx.delete(userTable).where(eq(userTable.id, userId)).returning({ id: userTable.id });
+
+            return deleted.length > 0;
+        });
+    } catch (error) {
+        console.error("ERROR deleteUserService:", error);
+        throw new Error("Gagal menghapus pengguna.");
+    }
+};
+
 export const getAllUsersService = async ({
     page = 1,
     limit = 10,
     orderBy = 'createdAt',
-    order = 'desc'
+    order = 'desc',
+    search,
+    status,
+    onlyActive = false,
 }: GetAllUsersParams = {}): Promise<PaginatedUsersResponse> => {
     try {
         // Validate input parameters
         const validatedPage = Math.max(1, page);
-        const validatedLimit = Math.max(1, Math.min(25, limit));
+        const validatedLimit = Math.max(1, Math.min(50, limit));
         const offset = (validatedPage - 1) * validatedLimit;
+
+        const conditions = [];
+
+        if (onlyActive) {
+            conditions.push(eq(userTable.status, 'ACTIVE'));
+        } else if (status) {
+            conditions.push(eq(userTable.status, status));
+        }
+
+        if (search && search.trim()) {
+            const pattern = `%${search.trim()}%`;
+            conditions.push(
+                or(
+                    ilike(userTable.name, pattern),
+                    ilike(userTable.email, pattern),
+                    ilike(userTable.title, pattern)
+                )
+            );
+        }
+
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
         // Get total count for pagination
         const totalUsers = await db.select({ count: count() })
             .from(userTable)
+            .where(whereClause)
             .then(res => Number(res[0].count));
 
         // Ensure orderBy is a valid column
@@ -222,6 +287,7 @@ export const getAllUsersService = async ({
 
         // Get users with pagination
         const users = await db.query.userTable.findMany({
+            where: whereClause,
             limit: validatedLimit,
             offset: offset,
             orderBy: order === 'desc'
