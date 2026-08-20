@@ -46,10 +46,22 @@ jobs:
         env:
           COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
         run: |
-          if [ -n "$COOLIFY_WEBHOOK_URL" ]; then
-            echo "Triggering Coolify deployment..."
-            curl -f -s -X GET "$COOLIFY_WEBHOOK_URL"
-            echo "Coolify deployment triggered successfully."
-          else
-            echo "COOLIFY_WEBHOOK_URL not set for this environment. Skipping deployment trigger."
+          if [ -z "$COOLIFY_WEBHOOK_URL" ]; then
+            echo "::error::COOLIFY_WEBHOOK_URL is not configured for this environment. Deployment failed."
+            exit 1
           fi
+
+          echo "Triggering Coolify deployment..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X GET "$COOLIFY_WEBHOOK_URL")
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
+
+          echo "Coolify Response (HTTP $HTTP_STATUS):"
+          echo "$BODY"
+
+          if [ -z "$HTTP_STATUS" ] || [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "::error::Coolify deployment failed with HTTP status $HTTP_STATUS"
+            exit 1
+          fi
+
+          echo "Coolify deployment triggered successfully."
