@@ -63,6 +63,7 @@ export type GetAllUsersParams = {
     order?: 'asc' | 'desc';
     search?: string;
     status?: UserStatus;
+    role?: UserRole;
     onlyActive?: boolean;
 }
 

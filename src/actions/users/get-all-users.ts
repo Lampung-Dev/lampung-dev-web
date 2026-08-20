@@ -8,6 +8,7 @@ export const getAllUserPagination = async ({
     order = 'asc',
     search,
     status,
+    role,
     onlyActive = false,
 }: GetAllUsersParams = {}): Promise<PaginatedUsersResponse> => {
     try {
@@ -18,6 +19,7 @@ export const getAllUserPagination = async ({
             order,
             search,
             status,
+            role,
             onlyActive,
         });
 

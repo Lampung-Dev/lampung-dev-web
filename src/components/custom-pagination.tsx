@@ -15,6 +15,7 @@ interface CustomPaginationProps {
     hasNextPage: boolean;
     baseUrl?: string;
     searchParams?: Record<string, string | number | undefined>;
+    scroll?: boolean;
 }
 
 export const CustomPagination = ({
@@ -24,6 +25,7 @@ export const CustomPagination = ({
     hasNextPage,
     baseUrl = "",
     searchParams = {},
+    scroll = false,
 }: CustomPaginationProps) => {
     const getPageUrl = (pageNum: number) => {
         const params = new URLSearchParams();
@@ -42,7 +44,7 @@ export const CustomPagination = ({
             <PaginationContent className="flex flex-wrap gap-2 justify-center">
                 {hasPreviousPage && (
                     <PaginationItem>
-                        <PaginationPrevious href={getPageUrl(currentPage - 1)} />
+                        <PaginationPrevious href={getPageUrl(currentPage - 1)} scroll={scroll} />
                     </PaginationItem>
                 )}
 
@@ -57,6 +59,7 @@ export const CustomPagination = ({
                                 <PaginationLink
                                     href={getPageUrl(pageNum)}
                                     isActive={pageNum === currentPage}
+                                    scroll={scroll}
                                 >
                                     {pageNum}
                                 </PaginationLink>
@@ -77,7 +80,7 @@ export const CustomPagination = ({
 
                 {hasNextPage && (
                     <PaginationItem>
-                        <PaginationNext href={getPageUrl(currentPage + 1)} />
+                        <PaginationNext href={getPageUrl(currentPage + 1)} scroll={scroll} />
                     </PaginationItem>
                 )}
             </PaginationContent>
