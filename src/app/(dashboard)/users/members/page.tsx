@@ -4,6 +4,8 @@ import { getUserByEmailService } from "@/services/user";
 import { getAllUserPagination } from "@/actions/users/get-all-users";
 import { UsersClient } from "./_components/users-client";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   searchParams: Promise<{ page?: string }>;
 }

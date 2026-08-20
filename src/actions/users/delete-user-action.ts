@@ -18,8 +18,9 @@ export async function deleteMyAccountAction(): Promise<{ success: boolean; error
 
         await deleteUserService(user.id);
 
-        revalidatePath("/members");
-        revalidatePath("/users/members");
+        revalidatePath("/members", "page");
+        revalidatePath("/users/members", "page");
+        revalidatePath("/", "layout");
         return { success: true };
     } catch (error) {
         console.error("ERROR deleteMyAccountAction:", error);
@@ -52,8 +53,9 @@ export async function deleteUserByAdminAction(userId: string): Promise<{ success
 
         await deleteUserService(userId);
 
-        revalidatePath("/users/members");
-        revalidatePath("/members");
+        revalidatePath("/members", "page");
+        revalidatePath("/users/members", "page");
+        revalidatePath("/", "layout");
         return { success: true };
     } catch (error) {
         console.error("ERROR deleteUserByAdminAction:", error);
