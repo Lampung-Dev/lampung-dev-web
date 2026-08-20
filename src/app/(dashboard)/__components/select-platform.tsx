@@ -155,7 +155,7 @@ export default function SelectPlatform({
                                 <Input
                                     type="url"
                                     placeholder="https://"
-                                    value={link.url}
+                                    value={link.url || ""}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                         updateSocialMedia(index, 'url', e.target.value)}
                                     maxLength={100}
