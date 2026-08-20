@@ -13,6 +13,8 @@ import { truncateString } from "@/lib/utils";
 import { MembersSearch } from "./_components/members-search";
 import { EmptyState } from "@/components/ui/empty-state";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
     title: "Members",
 };

@@ -33,7 +33,8 @@ export function DeleteAccountSection() {
             }
 
             toast.success("Akun berhasil dihapus.");
-            await signOut({ redirectTo: "/" });
+            await signOut({ redirect: false });
+            window.location.href = "/";
         } catch (err) {
             console.error(err);
             toast.error("Terjadi kesalahan saat menghapus akun.");
@@ -74,7 +75,10 @@ export function DeleteAccountSection() {
                         <AlertDialogFooter>
                             <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
                             <AlertDialogAction
-                                onClick={handleDeleteAccount}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDeleteAccount();
+                                }}
                                 disabled={isDeleting}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
