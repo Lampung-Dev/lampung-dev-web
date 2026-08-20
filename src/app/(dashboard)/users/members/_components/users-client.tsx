@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Search, ShieldCheck, ShieldAlert, User, ChevronDown, Trash2 } from "lucide-react";
+import { Search, ShieldCheck, ShieldAlert, User, ChevronDown, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -71,22 +71,20 @@ function UserAvatar({ user }: { user: SerializedUser }) {
   const initials = (user.name ?? user.email)
     .split(" ")
     .map((w) => w[0])
+    .filter(Boolean)
     .join("")
     .slice(0, 2)
     .toUpperCase();
 
-  if (user.picture) {
-    return (
-      <div className="w-8 h-8 rounded-full overflow-hidden border shrink-0">
-        <Image src={user.picture} alt={user.name ?? ""} width={32} height={32} className="object-cover w-full h-full" />
-      </div>
-    );
-  }
-
   return (
-    <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-      {initials}
-    </div>
+    <Avatar className="w-8 h-8 shrink-0">
+      {user.picture && (
+        <AvatarImage src={user.picture} alt={user.name ?? ""} className="object-cover" />
+      )}
+      <AvatarFallback className="bg-primary/20 border border-primary/30 text-primary text-xs font-bold">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
   );
 }
 
@@ -204,37 +202,70 @@ export function UsersClient({
   metadata,
   currentPage,
   currentUserId,
+  stats,
+  initialSearch = "",
+  initialRole = "all",
+  initialStatus = "all",
 }: {
   initialUsers: SerializedUser[];
   metadata: PaginatedUsersResponse["metadata"];
   currentPage: number;
   currentUserId: string;
+  stats: { total: number; active: number; banned: number; admins: number };
+  initialSearch?: string;
+  initialRole?: RoleType | "all";
+  initialStatus?: StatusType | "all";
 }) {
   const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
-  const [query, setQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<RoleType | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<StatusType | "all">("all");
+  const [query, setQuery] = useState(initialSearch);
+  const [isPending, startTransition] = useTransition();
 
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    return users.filter((u) => {
-      const matchQuery =
-        !q ||
-        (u.name ?? "").toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q);
-      const matchRole = roleFilter === "all" || u.role === roleFilter;
-      const matchStatus = statusFilter === "all" || u.status === statusFilter;
-      return matchQuery && matchRole && matchStatus;
+  useEffect(() => {
+    setUsers(initialUsers);
+  }, [initialUsers]);
+
+  useEffect(() => {
+    setQuery(initialSearch);
+  }, [initialSearch]);
+
+  const updateFilters = (updates: {
+    search?: string;
+    role?: RoleType | "all";
+    status?: StatusType | "all";
+    page?: number;
+  }) => {
+    const params = new URLSearchParams();
+    const s = updates.search !== undefined ? updates.search.trim() : initialSearch;
+    const r = updates.role !== undefined ? updates.role : initialRole;
+    const st = updates.status !== undefined ? updates.status : initialStatus;
+    const p = updates.page !== undefined ? updates.page : 1;
+
+    if (s) params.set("search", s);
+    if (r && r !== "all") params.set("role", r);
+    if (st && st !== "all") params.set("status", st);
+    if (p > 1) params.set("page", String(p));
+
+    const qs = params.toString();
+    startTransition(() => {
+      router.push(qs ? `/users/members?${qs}` : "/users/members", { scroll: false });
     });
-  }, [users, query, roleFilter, statusFilter]);
+  };
 
-  const stats = useMemo(() => ({
-    total: metadata.totalUsers,
-    active: users.filter((u) => u.status === "ACTIVE").length,
-    banned: users.filter((u) => u.status === "BANNED").length,
-    admins: users.filter((u) => u.role === "ADMIN").length,
-  }), [users, metadata]);
+  const handleSearchSubmit = () => {
+    updateFilters({ search: query, page: 1 });
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setQuery("");
+    updateFilters({ search: "", page: 1 });
+  };
 
   function handleRoleChanged(userId: string, role: RoleType) {
     setUsers((prev) =>
@@ -277,10 +308,6 @@ export function UsersClient({
     }
   }
 
-  function goToPage(page: number) {
-    router.push(`/users/members?page=${page}`);
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -313,19 +340,41 @@ export function UsersClient({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Cari nama atau email..."
+            placeholder="Cari nama, email, atau title..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-9"
+            onKeyDown={handleSearchKeyDown}
+            className="pl-9 pr-20"
           />
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {query && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                onClick={handleClearSearch}
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 px-2.5 text-xs"
+              onClick={handleSearchSubmit}
+            >
+              Cari
+            </Button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {(["all", "ADMIN", "MODERATOR", "USER"] as const).map((r) => (
             <Button
               key={r}
-              variant={roleFilter === r ? "default" : "outline"}
+              variant={initialRole === r ? "default" : "outline"}
               size="sm"
-              onClick={() => setRoleFilter(r)}
+              onClick={() => updateFilters({ role: r, page: 1 })}
             >
               {r === "all" ? "Semua Role" : ROLE_CONFIG[r].label}
             </Button>
@@ -333,9 +382,9 @@ export function UsersClient({
           {(["all", "ACTIVE", "BANNED"] as const).map((s) => (
             <Button
               key={s}
-              variant={statusFilter === s ? "default" : "outline"}
+              variant={initialStatus === s ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(s)}
+              onClick={() => updateFilters({ status: s, page: 1 })}
             >
               {s === "all" ? "Semua Status" : STATUS_CONFIG[s].label}
             </Button>
@@ -344,12 +393,12 @@ export function UsersClient({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Menampilkan <strong>{filtered.length}</strong> pengguna (halaman {currentPage} dari {metadata.totalPages})
+        Menampilkan <strong>{users.length}</strong> dari <strong>{metadata.totalUsers}</strong> pengguna (halaman {currentPage} dari {metadata.totalPages || 1})
       </p>
 
       {/* Table */}
       <div className="border rounded-lg bg-card">
-        <Table>
+        <Table className={isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
           <TableHeader>
             <TableRow>
               <TableHead>Pengguna</TableHead>
@@ -361,14 +410,14 @@ export function UsersClient({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                   Tidak ada pengguna yang sesuai filter.
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((user) => (
+              users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -488,8 +537,8 @@ export function UsersClient({
           <Button
             variant="outline"
             size="sm"
-            disabled={!metadata.hasPreviousPage}
-            onClick={() => goToPage(currentPage - 1)}
+            disabled={!metadata.hasPreviousPage || isPending}
+            onClick={() => updateFilters({ page: currentPage - 1 })}
           >
             Sebelumnya
           </Button>
@@ -499,8 +548,8 @@ export function UsersClient({
           <Button
             variant="outline"
             size="sm"
-            disabled={!metadata.hasNextPage}
-            onClick={() => goToPage(currentPage + 1)}
+            disabled={!metadata.hasNextPage || isPending}
+            onClick={() => updateFilters({ page: currentPage + 1 })}
           >
             Berikutnya
           </Button>

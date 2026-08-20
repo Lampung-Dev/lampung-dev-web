@@ -246,6 +246,7 @@ export const getAllUsersService = async ({
     order = 'desc',
     search,
     status,
+    role,
     onlyActive = false,
 }: GetAllUsersParams = {}): Promise<PaginatedUsersResponse> => {
     try {
@@ -260,6 +261,10 @@ export const getAllUsersService = async ({
             conditions.push(eq(userTable.status, 'ACTIVE'));
         } else if (status) {
             conditions.push(eq(userTable.status, status));
+        }
+
+        if (role) {
+            conditions.push(eq(userTable.role, role));
         }
 
         if (search && search.trim()) {
@@ -314,6 +319,27 @@ export const getAllUsersService = async ({
         console.error('ERROR getAllUsersService:', error);
         throw new Error('Failed to retrieve users. Please try again later.');
     }
-}
+};
+
+export const getUserStatsService = async () => {
+    try {
+        const [totalRes, activeRes, bannedRes, adminRes] = await Promise.all([
+            db.select({ count: count() }).from(userTable),
+            db.select({ count: count() }).from(userTable).where(eq(userTable.status, 'ACTIVE')),
+            db.select({ count: count() }).from(userTable).where(eq(userTable.status, 'BANNED')),
+            db.select({ count: count() }).from(userTable).where(eq(userTable.role, 'ADMIN')),
+        ]);
+
+        return {
+            total: Number(totalRes[0]?.count || 0),
+            active: Number(activeRes[0]?.count || 0),
+            banned: Number(bannedRes[0]?.count || 0),
+            admins: Number(adminRes[0]?.count || 0),
+        };
+    } catch (error) {
+        console.error('ERROR getUserStatsService:', error);
+        return { total: 0, active: 0, banned: 0, admins: 0 };
+    }
+};
 
 

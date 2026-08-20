@@ -48,7 +48,7 @@ const MemberCard = ({ member, index }: { member: Member; index: number }) => {
             key={index}
             className="w-full border border-white flex flex-col justify-center items-center p-4 md:p-6 rounded-lg backdrop-blur-sm bg-green-600/10 transition-all hover:scale-105 hover:shadow-lg"
         >
-            <AvatarClient imageUrl={member.image} />
+            <AvatarClient imageUrl={member.image} name={member.name} />
             <h3 className="mt-3 md:mt-4 text-base md:text-lg text-center font-medium line-clamp-2">
                 {truncateString(member.name, 20)}
             </h3>
@@ -182,6 +182,7 @@ export default async function Members({
                     hasNextPage={metadata.hasNextPage}
                     baseUrl="/members"
                     searchParams={{ search }}
+                    scroll={false}
                 />
             )}
         </div>
