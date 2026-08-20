@@ -14,6 +14,7 @@ interface CustomPaginationProps {
     hasPreviousPage: boolean;
     hasNextPage: boolean;
     baseUrl?: string;
+    searchParams?: Record<string, string | number | undefined>;
 }
 
 export const CustomPagination = ({
@@ -22,9 +23,18 @@ export const CustomPagination = ({
     hasPreviousPage,
     hasNextPage,
     baseUrl = "",
+    searchParams = {},
 }: CustomPaginationProps) => {
     const getPageUrl = (pageNum: number) => {
-        return `${baseUrl}?page=${pageNum}`;
+        const params = new URLSearchParams();
+        Object.entries(searchParams).forEach(([key, val]) => {
+            if (val !== undefined && val !== "" && key !== "page") {
+                params.set(key, String(val));
+            }
+        });
+        params.set("page", String(pageNum));
+        const qs = params.toString();
+        return qs ? `${baseUrl}?${qs}` : `${baseUrl}?page=${pageNum}`;
     };
 
     return (

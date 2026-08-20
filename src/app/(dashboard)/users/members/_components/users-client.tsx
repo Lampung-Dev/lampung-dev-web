@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Search, ShieldCheck, ShieldAlert, User, ChevronDown } from "lucide-react";
+import { Search, ShieldCheck, ShieldAlert, User, ChevronDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { updateUserRoleAction } from "@/actions/users/update-user-role-action";
 import { updateUserStatusAction } from "@/actions/users/update-user-status-action";
+import { deleteUserByAdminAction } from "@/actions/users/delete-user-action";
 import { type PaginatedUsersResponse } from "@/types/user";
 
 type SerializedUser = {
@@ -62,7 +63,7 @@ const ROLE_CONFIG: Record<RoleType, { label: string; className: string }> = {
 
 const STATUS_CONFIG: Record<StatusType, { label: string; className: string }> = {
   ACTIVE: { label: "Aktif", className: "border-green-500 text-green-500" },
-  INACTIVE: { label: "Nonaktif", className: "border-gray-500 text-gray-500" },
+  INACTIVE: { label: "Nonaktif", className: "border-gray-500 text-gray-400" },
   BANNED: { label: "Banned", className: "border-red-500 text-red-500" },
 };
 
@@ -142,6 +143,62 @@ function RoleDropdown({
   );
 }
 
+function StatusDropdown({
+  user,
+  currentUserId,
+  onChanged,
+}: {
+  user: SerializedUser;
+  currentUserId: string;
+  onChanged: (userId: string, status: StatusType) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const isSelf = user.id === currentUserId;
+
+  async function handleStatusChange(status: StatusType) {
+    if (user.status === status) return;
+    setLoading(true);
+    try {
+      await updateUserStatusAction(user.id, status);
+      onChanged(user.id, status);
+      toast.success(`Status ${user.name ?? user.email} diubah ke ${STATUS_CONFIG[status].label}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengubah status");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1 h-7 px-2" disabled={loading || isSelf}>
+          <Badge
+            variant="outline"
+            className={`text-xs ${STATUS_CONFIG[user.status as StatusType]?.className ?? ""}`}
+          >
+            {STATUS_CONFIG[user.status as StatusType]?.label ?? user.status}
+          </Badge>
+          {!isSelf && <ChevronDown className="w-3 h-3 text-muted-foreground" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuLabel className="text-xs">Ubah Status</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {(["ACTIVE", "BANNED"] as StatusType[]).map((s) => (
+          <DropdownMenuItem
+            key={s}
+            onClick={() => handleStatusChange(s)}
+            className={user.status === s ? "font-semibold" : ""}
+          >
+            {STATUS_CONFIG[s].label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function UsersClient({
   initialUsers,
   metadata,
@@ -157,6 +214,7 @@ export function UsersClient({
   const [users, setUsers] = useState(initialUsers);
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleType | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<StatusType | "all">("all");
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -166,9 +224,10 @@ export function UsersClient({
         (u.name ?? "").toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q);
       const matchRole = roleFilter === "all" || u.role === roleFilter;
-      return matchQuery && matchRole;
+      const matchStatus = statusFilter === "all" || u.status === statusFilter;
+      return matchQuery && matchRole && matchStatus;
     });
-  }, [users, query, roleFilter]);
+  }, [users, query, roleFilter, statusFilter]);
 
   const stats = useMemo(() => ({
     total: metadata.totalUsers,
@@ -183,13 +242,17 @@ export function UsersClient({
     );
   }
 
+  function handleStatusChanged(userId: string, status: StatusType) {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, status } : u))
+    );
+  }
+
   async function handleBanToggle(user: SerializedUser) {
     const newStatus: StatusType = user.status === "BANNED" ? "ACTIVE" : "BANNED";
     try {
       await updateUserStatusAction(user.id, newStatus);
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
-      );
+      handleStatusChanged(user.id, newStatus);
       toast.success(
         newStatus === "BANNED"
           ? `${user.name ?? user.email} telah dibanned`
@@ -197,6 +260,20 @@ export function UsersClient({
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal mengubah status");
+    }
+  }
+
+  async function handleDeleteUser(user: SerializedUser) {
+    try {
+      const res = await deleteUserByAdminAction(user.id);
+      if (!res.success) {
+        toast.error(res.error || "Gagal menghapus pengguna");
+        return;
+      }
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      toast.success(`Akun ${user.name ?? user.email} berhasil dihapus permanen.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus pengguna");
     }
   }
 
@@ -242,7 +319,7 @@ export function UsersClient({
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["all", "ADMIN", "MODERATOR", "USER"] as const).map((r) => (
             <Button
               key={r}
@@ -250,7 +327,17 @@ export function UsersClient({
               size="sm"
               onClick={() => setRoleFilter(r)}
             >
-              {r === "all" ? "Semua" : ROLE_CONFIG[r].label}
+              {r === "all" ? "Semua Role" : ROLE_CONFIG[r].label}
+            </Button>
+          ))}
+          {(["all", "ACTIVE", "BANNED"] as const).map((s) => (
+            <Button
+              key={s}
+              variant={statusFilter === s ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter(s)}
+            >
+              {s === "all" ? "Semua Status" : STATUS_CONFIG[s].label}
             </Button>
           ))}
         </div>
@@ -303,12 +390,11 @@ export function UsersClient({
                     />
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${STATUS_CONFIG[user.status as StatusType]?.className ?? ""}`}
-                    >
-                      {STATUS_CONFIG[user.status as StatusType]?.label ?? user.status}
-                    </Badge>
+                    <StatusDropdown
+                      user={user}
+                      currentUserId={currentUserId}
+                      onChanged={handleStatusChanged}
+                    />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {new Date(user.createdAt).toLocaleDateString("id-ID", {
@@ -319,40 +405,74 @@ export function UsersClient({
                   </TableCell>
                   <TableCell className="text-right">
                     {user.id !== currentUserId && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`text-xs ${user.status === "BANNED" ? "text-green-500 hover:text-green-400" : "text-destructive hover:text-destructive"}`}
-                          >
-                            {user.status === "BANNED" ? "Unban" : "Ban"}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {user.status === "BANNED" ? "Unban Pengguna?" : "Ban Pengguna?"}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {user.status === "BANNED"
-                                ? `Kamu akan mengaktifkan kembali akun ${user.name ?? user.email}.`
-                                : `Kamu akan memblokir akses ${user.name ?? user.email} ke platform ini.`}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleBanToggle(user)}
-                              className={user.status === "BANNED"
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Ban / Unban Dialog */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`text-xs h-7 px-2 ${user.status === "BANNED" ? "text-green-500 hover:text-green-400" : "text-amber-500 hover:text-amber-400"}`}
                             >
                               {user.status === "BANNED" ? "Unban" : "Ban"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {user.status === "BANNED" ? "Unban Pengguna?" : "Ban Pengguna?"}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {user.status === "BANNED"
+                                  ? `Kamu akan mengaktifkan kembali akun ${user.name ?? user.email}.`
+                                  : `Kamu akan memblokir akses ${user.name ?? user.email} ke platform ini.`}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Batal</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleBanToggle(user)}
+                                className={user.status === "BANNED"
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-amber-600 text-white hover:bg-amber-700"}
+                              >
+                                {user.status === "BANNED" ? "Unban" : "Ban"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+
+                        {/* Delete Member Dialog */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Hapus akun permanen"
+                              className="text-xs h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Hapus Pengguna Permanen?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tindakan ini akan menghapus akun <strong>{user.name ?? user.email}</strong> secara permanen beserta seluruh data profil dan relasinya. Tindakan ini tidak dapat dibatalkan.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Batal</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Hapus Permanen
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
