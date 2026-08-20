@@ -1,5 +1,4 @@
 import React from 'react';
-import { toast } from 'sonner';
 import { auth } from '@/lib/next-auth';
 import { UserProfile } from '@/types/user';
 import { getUserByEmailService } from '@/services/user';
@@ -14,9 +13,9 @@ export default async function Page() {
     if (!session) return
 
     const user: UserProfile = {
-        avatar: session.user?.image as string,
-        email: session.user?.email as string,
-        name: session.user?.name as string,
+        avatar: (session.user?.image as string) || '',
+        email: (session.user?.email as string) || '',
+        name: (session.user?.name as string) || '',
         title: '',
         role: 'USER',
         hasPassword: false,
@@ -27,16 +26,15 @@ export default async function Page() {
         const userData = await getUserByEmailService(session?.user?.email as string)
 
         if (userData) {
-            user.avatar = userData?.picture as string
-            user.name = userData.name as string
-            user.title = userData?.title as string
-            user.role = userData.role as string
-            user.hasPassword = userData.hasPassword
-            user.socialMediaLinks = userData?.socialMediaLinks
+            user.avatar = userData.picture || user.avatar || ''
+            user.name = userData.name || user.name || ''
+            user.title = userData.title || ''
+            user.role = userData.role || 'USER'
+            user.hasPassword = !!userData.hasPassword
+            user.socialMediaLinks = userData.socialMediaLinks || []
         }
     } catch (error) {
         console.log('ERROR get user data in my profile page:', error)
-        toast("error get user")
     }
 
     return (

@@ -13,11 +13,11 @@ import { updateUserAction } from "@/actions/update-user-action";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfileForm({ user }: { user: UserProfile }) {
-    const [name, setName] = useState(user.name);
-    const [email, setEmail] = useState(user.email);
-    const [title, setTitle] = useState(user.title);
+    const [name, setName] = useState(user.name || "");
+    const [email, setEmail] = useState(user.email || "");
+    const [title, setTitle] = useState(user.title || "");
     const [socialMediaLinks, setSocialMediaLinks] = useState<SocialMediaLink[]>(
-        []
+        user.socialMediaLinks || []
     );
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{
@@ -84,8 +84,8 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
     };
 
     useEffect(() => {
-        setName(user.name);
-        setEmail(user.email);
+        setName(user.name || "");
+        setEmail(user.email || "");
         setTitle(user.title || "");
         setSocialMediaLinks(user.socialMediaLinks || []);
     }, [user]);
@@ -101,7 +101,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                     type="text"
                     id="name"
                     placeholder="Name"
-                    value={name}
+                    value={name || ""}
                     onChange={handleNameChange}
                     className={errors.name ? "border-red-500" : ""}
                     required
@@ -118,7 +118,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                     type="email"
                     id="email"
                     placeholder="Email"
-                    value={email}
+                    value={email || ""}
                     className="cursor-not-allowed"
                     readOnly
                 />
@@ -133,7 +133,7 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
                     type="text"
                     id="title"
                     placeholder="Title"
-                    value={title}
+                    value={title || ""}
                     onChange={handleTitleChange}
                     className={errors.title ? "border-red-500" : ""}
                     required

@@ -23,10 +23,10 @@ export const creatSessionService = async (values: TNewSession) => {
 
 }
 
-export const getSessionByUserIdService = async (id: string) => {
+export const getSessionByUserIdService = async (userId: string) => {
     try {
         return await db.query.sessionTable.findFirst({
-            where: eq(sessionTable.id, id),
+            where: eq(sessionTable.userId, userId),
         });
     } catch (error) {
         console.log('ERROR getSessionByUserIdService:', error)
