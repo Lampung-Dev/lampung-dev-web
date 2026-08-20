@@ -42,29 +42,69 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/lampung-dev-web:${{ steps.vars.outputs.prefix }}${{ steps.vars.outputs.short_sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/lampung-dev-web:${{ steps.vars.outputs.prefix }}-latest
 
-      - name: Trigger Coolify Deployment
+      - name: Pull latest image & restart on Coolify
         env:
           COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
-          if [ -z "$COOLIFY_WEBHOOK_URL" ]; then
-            echo "::error::COOLIFY_WEBHOOK_URL is not configured for this environment. Deployment failed."
+          if [ -z "$COOLIFY_WEBHOOK_URL" ] || [ -z "$COOLIFY_TOKEN" ]; then
+            echo "::error::COOLIFY_WEBHOOK_URL or COOLIFY_TOKEN is not configured. Deployment failed."
             exit 1
           fi
 
-          echo "Triggering Coolify deployment..."
-          
-          # Prepare Authorization header if COOLIFY_TOKEN is provided
-          AUTH_HEADER=()
-          if [ -n "$COOLIFY_TOKEN" ]; then
-            AUTH_HEADER=(-H "Authorization: Bearer $COOLIFY_TOKEN")
+          # Extract base URL and service UUID from webhook URL
+          COOLIFY_BASE_URL=$(echo "$COOLIFY_WEBHOOK_URL" | grep -oP 'https?://[^/]+')
+          SERVICE_UUID=$(echo "$COOLIFY_WEBHOOK_URL" | grep -oP 'uuid=\K[^&]+')
+
+          echo "Coolify Base URL: $COOLIFY_BASE_URL"
+          echo "Service UUID: $SERVICE_UUID"
+
+          # Step 1: Get server UUID for this service
+          echo "Step 1: Looking up server UUID for service..."
+          SERVICE_INFO=$(curl -s \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            -H "Accept: application/json" \
+            "${COOLIFY_BASE_URL}/api/v1/services/${SERVICE_UUID}")
+          SERVER_UUID=$(echo "$SERVICE_INFO" | jq -r '.server.uuid // empty')
+
+          if [ -z "$SERVER_UUID" ]; then
+            echo "::warning::Could not determine server UUID. Falling back to webhook-only deploy."
+            # Fallback: just trigger the webhook
+            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              -X GET "$COOLIFY_WEBHOOK_URL")
+            HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
+            BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
+            echo "Webhook Response (HTTP $HTTP_STATUS): $BODY"
+            exit 0
           fi
 
-          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" "${AUTH_HEADER[@]}" -X GET "$COOLIFY_WEBHOOK_URL")
+          echo "Server UUID: $SERVER_UUID"
+
+          # Step 2: Execute 'docker compose pull' directly on the server
+          # This is the key fix — Coolify's webhook/restart API has a known bug
+          # where it calls StartService with pullLatestImages=false, so it never
+          # runs 'docker compose pull'. We do it ourselves via the Execute API.
+          echo "Step 2: Pulling latest Docker image on server..."
+          PULL_CMD="cd /data/coolify/services/${SERVICE_UUID} && docker compose pull"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X POST "${COOLIFY_BASE_URL}/api/v1/servers/${SERVER_UUID}/command" \
+            -d "{\"command\": \"${PULL_CMD}\", \"uuid\": \"${SERVICE_UUID}\"}")
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
+          echo "Pull Response (HTTP $HTTP_STATUS): $BODY"
+
+          # Step 3: Trigger the normal webhook to restart with the newly pulled image
+          echo "Step 3: Triggering Coolify deployment..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            -X GET "$COOLIFY_WEBHOOK_URL")
           HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
           BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
 
-          echo "Coolify Response (HTTP $HTTP_STATUS):"
+          echo "Deploy Response (HTTP $HTTP_STATUS):"
           echo "$BODY"
 
           if [ -z "$HTTP_STATUS" ] || [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
@@ -72,4 +112,4 @@ jobs:
             exit 1
           fi
 
-          echo "Coolify deployment triggered successfully."
+          echo "Deployment completed successfully."
