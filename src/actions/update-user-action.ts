@@ -12,7 +12,7 @@ import { upsertSocialMediaService } from "@/services/social-media";
 // Update the base function to parse FormData
 async function updateUserBase(formData: FormData) {
     const session = await auth();
-    if (!session) {
+    if (!session?.user?.email) {
         throw new Error("harap login terlebih dahulu");
     }
 
@@ -20,22 +20,20 @@ async function updateUserBase(formData: FormData) {
         // Parse the data from FormData
         const name = formData.get("name") as string;
         const title = formData.get("title") as string;
-        const email = formData.get("email") as string;
         const socialMediaLinksJson = formData.get("socialMediaLinks") as string;
         const socialMediaLinks = JSON.parse(
             socialMediaLinksJson
         ) as SocialMediaLink[];
 
-        if (!email) {
-            throw new Error("Email is required.");
-        }
-        
-        if (!name && name.length > 50) {
+        // Identitas selalu diambil dari session, BUKAN dari input client (cegah IDOR)
+        const email = session.user.email;
+
+        if (!name || name.length > 50) {
             throw new Error("Name is required and cannot exceed 50 characters");
         }
 
-        if (!title && title.length > 100) {
-            throw new Error("Title is required and cannot exceed 100 characters");
+        if (title && title.length > 100) {
+            throw new Error("Title cannot exceed 100 characters");
         }
 
         if (Array.isArray(socialMediaLinks)) {
@@ -50,9 +48,7 @@ async function updateUserBase(formData: FormData) {
         }
 
         // Get user by email since that's what we have in the session
-        const existingUser = await getUserByEmailService(
-            session?.user?.email as string
-        );
+        const existingUser = await getUserByEmailService(email);
 
         if (!existingUser?.id) {
             throw new Error("User not found");
@@ -62,7 +58,7 @@ async function updateUserBase(formData: FormData) {
         const [updateUser] = await updateProfileDataService({
             name,
             title,
-            email,
+            email: existingUser.email,
         });
 
         if (!updateUser) throw new Error("Error update user data");
