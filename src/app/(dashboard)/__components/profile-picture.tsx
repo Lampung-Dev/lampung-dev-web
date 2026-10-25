@@ -111,7 +111,6 @@ export default function ProfilePicture({ user }: Props) {
       const croppedBlob = await getCroppedImg(imageRef, crop as PixelCrop);
       const formData = new FormData();
       formData.append("image", croppedBlob, "cropped-image.jpg");
-      formData.append("email", user.email);
 
       setPhoto(URL.createObjectURL(croppedBlob));
       setIsOpen(false);
@@ -139,7 +138,7 @@ export default function ProfilePicture({ user }: Props) {
       });
       setIsLoading(false);
     }
-  }, [imageRef, crop, getCroppedImg, photo, user.email]);
+  }, [imageRef, crop, getCroppedImg, photo]);
 
   return (
     <>

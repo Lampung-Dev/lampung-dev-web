@@ -65,7 +65,6 @@ export default function ProfileForm({ user }: { user: UserProfile }) {
             const formData = new FormData();
             formData.append("name", name);
             formData.append("title", title);
-            formData.append("email", email);
             formData.append(
                 "socialMediaLinks",
                 JSON.stringify(socialMediaLinks)
