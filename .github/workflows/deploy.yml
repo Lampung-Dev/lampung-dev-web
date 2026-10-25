@@ -42,74 +42,69 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/lampung-dev-web:${{ steps.vars.outputs.prefix }}${{ steps.vars.outputs.short_sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/lampung-dev-web:${{ steps.vars.outputs.prefix }}-latest
 
-      - name: Pull latest image & restart on Coolify
+      - name: Redeploy stack on Portainer
         env:
-          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+          PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID }}
+          PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
+          # Optional: only needed when Portainer sits behind Cloudflare Access
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
-          if [ -z "$COOLIFY_WEBHOOK_URL" ] || [ -z "$COOLIFY_TOKEN" ]; then
-            echo "::error::COOLIFY_WEBHOOK_URL or COOLIFY_TOKEN is not configured. Deployment failed."
-            exit 1
+          set -euo pipefail
+
+          for v in PORTAINER_URL PORTAINER_API_KEY PORTAINER_STACK_ID PORTAINER_ENDPOINT_ID; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::$v is not configured for the '${{ github.ref_name == 'main' && 'production' || 'development' }}' environment."
+              exit 1
+            fi
+          done
+
+          BASE="${PORTAINER_URL%/}/api"
+          CURL_OPTS=(--silent --show-error --fail-with-body --max-time 60 -H "X-API-Key: ${PORTAINER_API_KEY}")
+          if [ -n "${CF_ACCESS_CLIENT_ID:-}" ]; then
+            CURL_OPTS+=(-H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}")
           fi
 
-          # Extract base URL and service UUID from webhook URL
-          COOLIFY_BASE_URL=$(echo "$COOLIFY_WEBHOOK_URL" | grep -oP 'https?://[^/]+')
-          SERVICE_UUID=$(echo "$COOLIFY_WEBHOOK_URL" | grep -oP 'uuid=\K[^&]+')
+          # Fail early with a readable message when the response is not JSON
+          # (e.g. an HTML login/proxy page instead of the Portainer API)
+          api() {
+            local out
+            out=$(curl "${CURL_OPTS[@]}" "$@") || { echo "::error::Portainer API request failed: ${out:0:300}" >&2; exit 1; }
+            if ! jq -e . >/dev/null 2>&1 <<<"$out"; then
+              echo "::error::Portainer did not return JSON (check PORTAINER_URL / access policy): ${out:0:300}" >&2
+              exit 1
+            fi
+            printf '%s' "$out"
+          }
 
-          echo "Coolify Base URL: $COOLIFY_BASE_URL"
-          echo "Service UUID: $SERVICE_UUID"
+          echo "Step 1: Reading current stack file and environment variables..."
+          STACK=$(api "${BASE}/stacks/${PORTAINER_STACK_ID}")
+          FILE=$(api "${BASE}/stacks/${PORTAINER_STACK_ID}/file")
+          echo "Stack: $(jq -r '.Name' <<<"$STACK") (status $(jq -r '.Status' <<<"$STACK"))"
 
-          # Step 1: Get server UUID for this service
-          echo "Step 1: Looking up server UUID for service..."
-          SERVICE_INFO=$(curl -s \
-            -H "Authorization: Bearer $COOLIFY_TOKEN" \
-            -H "Accept: application/json" \
-            "${COOLIFY_BASE_URL}/api/v1/services/${SERVICE_UUID}")
-          SERVER_UUID=$(echo "$SERVICE_INFO" | jq -r '.server.uuid // empty')
+          echo "Step 2: Redeploying with image re-pull (tag ${{ steps.vars.outputs.prefix }}-latest)..."
+          PAYLOAD=$(jq -n \
+            --argjson env "$(jq '.Env // []' <<<"$STACK")" \
+            --arg file "$(jq -r '.StackFileContent' <<<"$FILE")" \
+            '{stackFileContent: $file, env: $env, prune: true, pullImage: true, repullImageAndRedeploy: true}')
+          api -X PUT -H "Content-Type: application/json" \
+            "${BASE}/stacks/${PORTAINER_STACK_ID}?endpointId=${PORTAINER_ENDPOINT_ID}" \
+            --data-binary @- <<<"$PAYLOAD" >/dev/null
 
-          if [ -z "$SERVER_UUID" ]; then
-            echo "::warning::Could not determine server UUID. Falling back to webhook-only deploy."
-            # Fallback: just trigger the webhook
-            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
-              -H "Authorization: Bearer $COOLIFY_TOKEN" \
-              -X GET "$COOLIFY_WEBHOOK_URL")
-            HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
-            BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
-            echo "Webhook Response (HTTP $HTTP_STATUS): $BODY"
-            exit 0
-          fi
-
-          echo "Server UUID: $SERVER_UUID"
-
-          # Step 2: Execute 'docker compose pull' directly on the server
-          # This is the key fix — Coolify's webhook/restart API has a known bug
-          # where it calls StartService with pullLatestImages=false, so it never
-          # runs 'docker compose pull'. We do it ourselves via the Execute API.
-          echo "Step 2: Pulling latest Docker image on server..."
-          PULL_CMD="cd /data/coolify/services/${SERVICE_UUID} && docker compose pull"
-          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
-            -H "Authorization: Bearer $COOLIFY_TOKEN" \
-            -H "Content-Type: application/json" \
-            -X POST "${COOLIFY_BASE_URL}/api/v1/servers/${SERVER_UUID}/command" \
-            -d "{\"command\": \"${PULL_CMD}\", \"uuid\": \"${SERVICE_UUID}\"}")
-          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
-          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
-          echo "Pull Response (HTTP $HTTP_STATUS): $BODY"
-
-          # Step 3: Trigger the normal webhook to restart with the newly pulled image
-          echo "Step 3: Triggering Coolify deployment..."
-          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
-            -H "Authorization: Bearer $COOLIFY_TOKEN" \
-            -X GET "$COOLIFY_WEBHOOK_URL")
-          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
-          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
-
-          echo "Deploy Response (HTTP $HTTP_STATUS):"
-          echo "$BODY"
-
-          if [ -z "$HTTP_STATUS" ] || [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
-            echo "::error::Coolify deployment failed with HTTP status $HTTP_STATUS"
-            exit 1
-          fi
-
-          echo "Deployment completed successfully."
+          # Since Portainer 2.41 the update runs in the background:
+          # Status 3 = deploying, 1 = active (done), 4 = error
+          echo "Step 3: Waiting for deployment to finish..."
+          for i in $(seq 1 60); do
+            STACK=$(api "${BASE}/stacks/${PORTAINER_STACK_ID}")
+            STATUS=$(jq -r '.Status' <<<"$STACK")
+            case "$STATUS" in
+              3) sleep 5 ;;
+              1) echo "Deployment completed successfully."; exit 0 ;;
+              4) echo "::error::Deployment failed: $(jq -r '.DeploymentStatus[-1].Message // "unknown error"' <<<"$STACK")"; exit 1 ;;
+              *) echo "Stack status: $STATUS"; echo "Deployment request accepted."; exit 0 ;;
+            esac
+          done
+          echo "::error::Timed out waiting for Portainer deployment (5 minutes)."
+          exit 1
