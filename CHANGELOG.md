@@ -1,3 +1,11 @@
+## [1.6.4] - 2026-10-25
+
+### What's Changed
+
+- Security: profile update and avatar upload now derive the user from the authenticated session instead of client-supplied data
+- Avatar upload accepts only JPEG/PNG/WebP up to 5MB and re-encodes images with `sharp` before uploading to Cloudinary
+- Fix profile name/title validation that was never enforced
+
 ## [1.6.2] - 2026-08-20
 
 ### What's Changed
